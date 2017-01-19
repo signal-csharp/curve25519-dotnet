@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C45AFFFF-2C87-436B-BCA0-E7F223965478}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>curve25519_dotnet</RootNamespace>
+    <AssemblyName>curve25519-dotnet</AssemblyName>
+    <DefaultLanguage>de-DE</DefaultLanguage>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="bc-crypto\README.md" />
+    <None Include="deploy\Build.bat" />
+    <None Include="deploy\DeployToLocalRepo.bat" />
+    <None Include="deploy\DeployToNuGet.bat" />
+    <None Include="deploy\RemoveNuGetCache.bat" />
+    <None Include="project.json" />
+    <!-- A reference to the entire .NET Framework is automatically included -->
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BaseCSharpCurve25519Provider.cs" />
+    <Compile Include="bc-crypto\digests\LongDigest.cs" />
+    <Compile Include="bc-crypto\digests\Sha512Digest.cs" />
+    <Compile Include="bc-crypto\IDigest.cs" />
+    <Compile Include="bc-crypto\util\Pack.cs" />
+    <Compile Include="BouncyCastleDotNETSha512Provider.cs" />
+    <Compile Include="CSharpCurve25519Provider.cs" />
+    <Compile Include="csharp\Arrays.cs" />
+    <Compile Include="csharp\crypto_additions.cs" />
+    <Compile Include="csharp\crypto_verify_32.cs" />
+    <Compile Include="csharp\curve_sigs.cs" />
+    <Compile Include="csharp\elligator.cs" />
+    <Compile Include="csharp\fe_0.cs" />
+    <Compile Include="csharp\fe_1.cs" />
+    <Compile Include="csharp\fe_add.cs" />
+    <Compile Include="csharp\fe_cmov.cs" />
+    <Compile Include="csharp\fe_copy.cs" />
+    <Compile Include="csharp\fe_cswap.cs" />
+    <Compile Include="csharp\fe_frombytes.cs" />
+    <Compile Include="csharp\fe_invert.cs" />
+    <Compile Include="csharp\fe_isequal.cs" />
+    <Compile Include="csharp\fe_isnegative.cs" />
+    <Compile Include="csharp\fe_isnonzero.cs" />
+    <Compile Include="csharp\fe_montx_to_edy.cs" />
+    <Compile Include="csharp\fe_mont_rhs.cs" />
+    <Compile Include="csharp\fe_mul.cs" />
+    <Compile Include="csharp\fe_mul121666.cs" />
+    <Compile Include="csharp\fe_neg.cs" />
+    <Compile Include="csharp\fe_pow22523.cs" />
+    <Compile Include="csharp\fe_sq.cs" />
+    <Compile Include="csharp\fe_sq2.cs" />
+    <Compile Include="csharp\fe_sqrt.cs" />
+    <Compile Include="csharp\fe_sub.cs" />
+    <Compile Include="csharp\fe_tobytes.cs" />
+    <Compile Include="csharp\ge_add.cs" />
+    <Compile Include="csharp\ge_cached.cs" />
+    <Compile Include="csharp\ge_double_scalarmult.cs" />
+    <Compile Include="csharp\ge_frombytes.cs" />
+    <Compile Include="csharp\ge_isneutral.cs" />
+    <Compile Include="csharp\ge_is_small_order.cs" />
+    <Compile Include="csharp\ge_madd.cs" />
+    <Compile Include="csharp\ge_montx_to_p2.cs" />
+    <Compile Include="csharp\ge_montx_to_p3.cs" />
+    <Compile Include="csharp\ge_msub.cs" />
+    <Compile Include="csharp\ge_neg.cs" />
+    <Compile Include="csharp\ge_p1p1.cs" />
+    <Compile Include="csharp\ge_p1p1_to_p2.cs" />
+    <Compile Include="csharp\ge_p1p1_to_p3.cs" />
+    <Compile Include="csharp\ge_p2.cs" />
+    <Compile Include="csharp\ge_p2_0.cs" />
+    <Compile Include="csharp\ge_p2_dbl.cs" />
+    <Compile Include="csharp\ge_p3.cs" />
+    <Compile Include="csharp\ge_p3_0.cs" />
+    <Compile Include="csharp\ge_p3_dbl.cs" />
+    <Compile Include="csharp\ge_p3_tobytes.cs" />
+    <Compile Include="csharp\ge_p3_to_cached.cs" />
+    <Compile Include="csharp\ge_p3_to_montx.cs" />
+    <Compile Include="csharp\ge_p3_to_p2.cs" />
+    <Compile Include="csharp\ge_precomp.cs" />
+    <Compile Include="csharp\ge_precomp_0.cs" />
+    <Compile Include="csharp\ge_precomp_base_0_7.cs" />
+    <Compile Include="csharp\ge_precomp_base_16_23.cs" />
+    <Compile Include="csharp\ge_precomp_base_24_31.cs" />
+    <Compile Include="csharp\ge_precomp_base_8_15.cs" />
+    <Compile Include="csharp\ge_scalarmult.cs" />
+    <Compile Include="csharp\ge_scalarmult_base.cs" />
+    <Compile Include="csharp\ge_scalarmult_cofactor.cs" />
+    <Compile Include="csharp\ge_sub.cs" />
+    <Compile Include="csharp\ge_tobytes.cs" />
+    <Compile Include="csharp\ISha512.cs" />
+    <Compile Include="csharp\keygen.cs" />
+    <Compile Include="csharp\open.cs" />
+    <Compile Include="csharp\open_modified.cs" />
+    <Compile Include="csharp\scalarmult.cs" />
+    <Compile Include="csharp\sc_clamp.cs" />
+    <Compile Include="csharp\sc_cmov.cs" />
+    <Compile Include="csharp\sc_muladd.cs" />
+    <Compile Include="csharp\sc_neg.cs" />
+    <Compile Include="csharp\sc_reduce.cs" />
+    <Compile Include="csharp\sign_modified.cs" />
+    <Compile Include="csharp\uopen_modified.cs" />
+    <Compile Include="csharp\usign_modified.cs" />
+    <Compile Include="csharp\utility.cs" />
+    <Compile Include="csharp\uxeddsa.cs" />
+    <Compile Include="csharp\vopen_modified.cs" />
+    <Compile Include="csharp\vsign_modified.cs" />
+    <Compile Include="csharp\vxeddsa.cs" />
+    <Compile Include="csharp\xeddsa.cs" />
+    <Compile Include="csharp\zeroize.cs" />
+    <Compile Include="Curve25519.cs" />
+    <Compile Include="Curve25519KeyPair.cs" />
+    <Compile Include="Curve25519Provider.cs" />
+    <Compile Include="DonnaCSharpCurve25519Provider.cs" />
+    <Compile Include="donna\Curve25519Donna.cs" />
+    <Compile Include="PCLSecureRandomProvider.cs" />
+    <Compile Include="pcl\IPclCloneable.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SecureRandomProvider.cs" />
+    <Compile Include="VrfSignatureVerificationFailedException.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
