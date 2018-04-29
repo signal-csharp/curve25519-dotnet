@@ -16,13 +16,12 @@
  */
 
 using curve25519;
-using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using org.whispersystems.curve25519;
 using System;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Security.Cryptography;
 using System.Text;
-using Windows.Security.Cryptography;
-using Windows.Storage.Streams;
 
 namespace Curve25519WinRT.WindowsPhone_Tests
 {
@@ -34,8 +33,9 @@ namespace Curve25519WinRT.WindowsPhone_Tests
         private const int EXPECTED_LEN = 32;
         private static byte[] GetRandomBuffer(int expectedLen)
         {
-            IBuffer randomIBuffer = CryptographicBuffer.GenerateRandom((uint)expectedLen);
-            return WindowsRuntimeBufferExtensions.ToArray(randomIBuffer, 0, expectedLen);
+            byte[] buffer = new byte[expectedLen];
+            RandomNumberGenerator.Create().GetBytes(buffer);
+            return buffer;
         }
         #endregion
 

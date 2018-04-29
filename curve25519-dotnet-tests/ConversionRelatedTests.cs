@@ -16,11 +16,10 @@
  */
 
 using System;
-using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
-using Windows.Security.Cryptography.Core;
-using Windows.Storage.Streams;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Security.Cryptography;
 using curve25519.donna;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace curve25519Tests
 {
@@ -104,19 +103,12 @@ namespace curve25519Tests
             byte[] digestActual = new byte[digestExpectedLength];
             provider.calculateDigest(digestActual, message, message.Length);
 
-            //The WinRT way
-            HashAlgorithmProvider sha512Provider = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha512);
-            IBuffer bMessage = WindowsRuntimeBufferExtensions.AsBuffer(message);
-            IBuffer bDigest = sha512Provider.HashData(bMessage);
-            byte[] digestWinRT = WindowsRuntimeBufferExtensions.ToArray(bDigest);
-
-            //The PCLCrypto way
-            PCLCrypto.IHashAlgorithmProvider sha512PCLProvider = PCLCrypto.WinRTCrypto.HashAlgorithmProvider.OpenAlgorithm(PCLCrypto.HashAlgorithm.Sha512);
-            byte[] digestPCL = sha512PCLProvider.HashData(message);
+            //the dotnet standard way
+            var sha = SHA512.Create();
+            var shaHash = sha.ComputeHash(message);
 
             //Did we get the same value for all ways?
-            CollectionAssert.AreEqual(digestWinRT, digestActual);
-            CollectionAssert.AreEqual(digestPCL, digestWinRT);
+            CollectionAssert.AreEqual(shaHash, digestActual);
         }
 
         [TestMethod]

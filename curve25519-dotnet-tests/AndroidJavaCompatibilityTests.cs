@@ -19,12 +19,10 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
-using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 using org.whispersystems.curve25519;
 using org.whispersystems.curve25519.csharp;
-using Windows.Security.Cryptography;
-using Windows.Storage.Streams;
 using curve25519_dotnet.csharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace curve25519Tests
 {
@@ -34,10 +32,12 @@ namespace curve25519Tests
         #region Test helper code
         private Curve25519 curve25519;
         private const int EXPECTED_LEN = 32;
-        private static byte[] GetRandomBuffer(int expectedLen)
+        private static void Memset(byte[] buf, byte val)
         {
-            IBuffer randomIBuffer = CryptographicBuffer.GenerateRandom((uint)expectedLen);
-            return WindowsRuntimeBufferExtensions.ToArray(randomIBuffer, 0, expectedLen);
+            for(int i=0;i<buf.Length;i++)
+            {
+                buf[i] = val;
+            }
         }
         #endregion
 
@@ -88,7 +88,7 @@ namespace curve25519Tests
         }
 
         [TestMethod]
-        public void strict_fast_test(int silent)
+        public void strict_fast_test()
         {
             byte[] unreduced1 = new byte[] {
                 0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -299,7 +299,7 @@ namespace curve25519Tests
             Assert.AreEqual(0, xeddsa.xed25519_verify(sha512provider, signature, pubkey, msg, MSG_LEN), "XEdDSA verify #1");
             signature[0] ^= 1;
             Assert.AreNotEqual(0, xeddsa.xed25519_verify(sha512provider, signature, pubkey, msg, MSG_LEN), "XEdDSA verify #2");
-            pubkey[32] = 0xff;
+            Memset(pubkey, 0xff);
             Assert.AreNotEqual(0, xeddsa.xed25519_verify(sha512provider, signature, pubkey, msg, MSG_LEN), "XEdDSA verify #3");
         }
 
@@ -345,7 +345,7 @@ namespace curve25519Tests
             signature[0] ^= 1;
             Assert.AreNotEqual(0, vxeddsa.vxed25519_verify(sha512provider, vrf_out, signature, pubkey, msg, MSG_LEN), "VXEdDSA verify #2");
 
-            pubkey[32] = 0xff;
+            Memset(pubkey, 0xff);
             Assert.AreNotEqual(0, vxeddsa.vxed25519_verify(sha512provider, vrf_out, signature, pubkey, msg, MSG_LEN), "VXEdDSA verify #3");
             Keygen.curve25519_keygen(pubkey, privkey);
 

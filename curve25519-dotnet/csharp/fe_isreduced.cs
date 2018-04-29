@@ -15,6 +15,7 @@ namespace curve25519_dotnet.csharp
             byte[] strict = new byte[32];
 
             Fe_frombytes.fe_frombytes(fe, curve25519_pubkey);
+            Fe_tobytes.fe_tobytes(strict, fe);
             if (Crypto_verify_32.crypto_verify_32(strict, curve25519_pubkey) != 0)
                 return false;
             return true;

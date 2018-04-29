@@ -16,13 +16,11 @@
  */
 
 using curve25519;
-using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using org.whispersystems.curve25519;
 using System;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
-using Windows.Security.Cryptography;
-using Windows.Storage.Streams;
 
 namespace curve25519Tests
 {
