@@ -2,6 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.4</TargetFramework>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseUrl>https://www.gnu.org/licenses/gpl-3.0.html</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/signal-csharp/curve25519-dotnet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/signal-csharp/curve25519-dotnet</RepositoryUrl>
+    <Version>0.3.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
