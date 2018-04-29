@@ -1,20 +1,22 @@
-﻿/** 
- * Copyright (C) 2016 golf1052
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+﻿
 
+using curve25519_dotnet.csharp;
+/** 
+* Copyright (C) 2016 golf1052
+* 
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 using System;
 
 namespace org.whispersystems.curve25519.csharp
@@ -68,7 +70,6 @@ namespace org.whispersystems.curve25519.csharp
             int[] u = new int[10];
             int[] y = new int[10];
             byte[] ed_pubkey = new byte[32];
-            byte[] strict = new byte[32];
             byte[] verifybuf = new byte[crypto_additions.MAX_MSG_LEN + 64]; /* working buffer */
             byte[] verifybuf2 = new byte[crypto_additions.MAX_MSG_LEN + 64]; /* working buffer #2 */
 
@@ -83,12 +84,9 @@ namespace org.whispersystems.curve25519.csharp
              * 
              * NOTE: u=-1 is converted to y=0 since fe_invert is mod-exp
              */
+            if (!Fe_isreduced.fe_isreduced(curve25519_pubkey))
+                return -1;
             Fe_frombytes.fe_frombytes(u, curve25519_pubkey);
-            Fe_tobytes.fe_tobytes(strict, u);
-            if (Crypto_verify_32.crypto_verify_32(strict, curve25519_pubkey) != 0)
-            {
-                return 0;
-            }
             Fe_montx_to_edy.fe_montx_to_edy(y, u);
             Fe_tobytes.fe_tobytes(ed_pubkey, y);
 

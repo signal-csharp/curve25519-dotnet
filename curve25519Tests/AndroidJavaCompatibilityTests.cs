@@ -24,6 +24,7 @@ using org.whispersystems.curve25519;
 using org.whispersystems.curve25519.csharp;
 using Windows.Security.Cryptography;
 using Windows.Storage.Streams;
+using curve25519_dotnet.csharp;
 
 namespace curve25519Tests
 {
@@ -87,6 +88,32 @@ namespace curve25519Tests
         }
 
         [TestMethod]
+        public void strict_fast_test(int silent)
+        {
+            byte[] unreduced1 = new byte[] {
+                0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+            };
+            byte[] unreduced2 = new byte[] {
+                0xED, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+            };
+            byte[] unreduced3 = {
+                0xEC, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+            };
+            Assert.IsFalse(Fe_isreduced.fe_isreduced(unreduced1));
+            Assert.IsFalse(Fe_isreduced.fe_isreduced(unreduced2));
+            Assert.IsTrue(Fe_isreduced.fe_isreduced(unreduced3));
+        }
+
+    [TestMethod]
         public void elligator_fast_test()
         {
             byte[] elligator_correct_output = new byte[]
@@ -267,16 +294,13 @@ namespace curve25519Tests
             Keygen.curve25519_keygen(pubkey, privkey);
 
             ISha512 sha512provider = new BouncyCastleDotNETSha512Provider();
-
             xeddsa.xed25519_sign(sha512provider, signature, privkey, msg, MSG_LEN, random);
-
             CollectionAssert.AreEqual(signature_correct, signature, "XEdDSA sign");
-
             Assert.AreEqual(0, xeddsa.xed25519_verify(sha512provider, signature, pubkey, msg, MSG_LEN), "XEdDSA verify #1");
-
             signature[0] ^= 1;
-
             Assert.AreNotEqual(0, xeddsa.xed25519_verify(sha512provider, signature, pubkey, msg, MSG_LEN), "XEdDSA verify #2");
+            pubkey[32] = 0xff;
+            Assert.AreNotEqual(0, xeddsa.xed25519_verify(sha512provider, signature, pubkey, msg, MSG_LEN), "XEdDSA verify #3");
         }
 
         [TestMethod]
@@ -315,12 +339,15 @@ namespace curve25519Tests
             ISha512 sha512provider = new BouncyCastleDotNETSha512Provider();
 
             vxeddsa.vxed25510_sign(sha512provider, signature, privkey, msg, MSG_LEN, random);
-
             CollectionAssert.AreEqual(signature_correct, signature, "VXEdDSA sign");
             Assert.AreEqual(0, vxeddsa.vxed25519_verify(sha512provider, vrf_out, signature, pubkey, msg, MSG_LEN), "VXEdDSA verify #1");
             Array.Copy(vrf_out, 0, vrf_outprev, 0, 32);
             signature[0] ^= 1;
             Assert.AreNotEqual(0, vxeddsa.vxed25519_verify(sha512provider, vrf_out, signature, pubkey, msg, MSG_LEN), "VXEdDSA verify #2");
+
+            pubkey[32] = 0xff;
+            Assert.AreNotEqual(0, vxeddsa.vxed25519_verify(sha512provider, vrf_out, signature, pubkey, msg, MSG_LEN), "VXEdDSA verify #3");
+            Keygen.curve25519_keygen(pubkey, privkey);
 
             /* Test U */
             byte[] sigprev = new byte[96];
@@ -583,6 +610,7 @@ namespace curve25519Tests
                 0xfe, 0x30, 0xa1, 0x7c, 0xce, 0x10, 0x67, 0x0e,
             };
 
+            /*
             byte[] signature_100k_correct = new byte[]
             {
                 0xc9, 0x11, 0x2b, 0x55, 0xfa, 0xc4, 0xb2, 0xfe,
@@ -630,6 +658,7 @@ namespace curve25519Tests
                 0x7b, 0x26, 0xf2, 0xa2, 0x2b, 0x02, 0x58, 0xca,
                 0xbd, 0x2c, 0x2b, 0xf7, 0x77, 0x58, 0xfe, 0x09,
             };
+            */
 
             int count;
             const int MSG_LEN = 200;
@@ -687,6 +716,7 @@ namespace curve25519Tests
                 {
                     CollectionAssert.AreEqual(signature_10k_correct, signature, $"VXEdDSA 10K doesn't match {count}");
                 }
+                /*
                 if (count == 100000)
                 {
                     CollectionAssert.AreEqual(signature_100k_correct, signature, $"VXEdDSA 100K doesn't match {count}");
@@ -699,7 +729,6 @@ namespace curve25519Tests
                 {
                     CollectionAssert.AreEqual(signature_10m_correct, signature, $"VXEdDSA 10m doesn't match {count}");
                 }
-                /*
                 if (count == 100000000) {
                     if (memcmp(signature, signature_100m_correct, 96) != 0)
                         ERROR("VXEDDSA 100m doesn't match %d\n", count);
