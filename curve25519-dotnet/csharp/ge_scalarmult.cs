@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System;
+
 namespace org.whispersystems.curve25519.csharp
 {
     public class Ge_scalarmult
@@ -99,7 +101,7 @@ namespace org.whispersystems.curve25519.csharp
          *   a[31] <= 127
          */
 
-        public static void ge_scalarmult(Ge_p3 h, byte[] a, Ge_p3 A)
+        public static void ge_scalarmult(Ge_p3 h, ReadOnlySpan<byte> a, Ge_p3 A)
         {
             byte[] e = new byte[64];
             byte carry;

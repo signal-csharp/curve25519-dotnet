@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System;
+
 namespace org.whispersystems.curve25519.csharp
 {
 
@@ -26,7 +28,7 @@ namespace org.whispersystems.curve25519.csharp
         //CONVERT #include "crypto_uint32.h"
         //CONVERT #include "long.h"
 
-        public static long load_3(byte[] input, int index)
+        public static long load_3(ReadOnlySpan<byte> input, int index)
         {
             long result;
             result = ((long)input[index + 0]) & 0xFF;
@@ -35,7 +37,7 @@ namespace org.whispersystems.curve25519.csharp
             return result;
         }
 
-        public static long load_4(byte[] input, int index)
+        public static long load_4(ReadOnlySpan<byte> input, int index)
         {
             long result;
             result = (((long)input[index + 0]) & 0xFF);
@@ -55,7 +57,7 @@ namespace org.whispersystems.curve25519.csharp
           Overwrites s in place.
         */
 
-        public static void sc_reduce(byte[] s)
+        public static void sc_reduce(Span<byte> s)
         {
             long s0 = 2097151 & load_3(s, 0);
             long s1 = 2097151 & (((uint)load_4(s, 2)) >> 5);

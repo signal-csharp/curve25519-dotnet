@@ -24,6 +24,7 @@ namespace org.whispersystems.curve25519.csharp
         public static int legendre_is_nonsquare(int[] iIn)
         {
             int[] temp = new int[10];
+            byte[] bytes = new byte[32];
             Fe_pow22523.fe_pow22523(temp, iIn); /* temp = in^((q-5)/8) */
             Fe_sq.fe_sq(temp, temp);            /*        in^((q-5)/4) */
             Fe_sq.fe_sq(temp, temp);            /*        in^((q-5)/2) */
@@ -36,7 +37,6 @@ namespace org.whispersystems.curve25519.csharp
              * 0 = input is zero
              * -1 = nonsquare
              */
-            byte[] bytes = new byte[32];
             Fe_tobytes.fe_tobytes(bytes, temp);
             return 1 & bytes[31];
         }
@@ -84,15 +84,16 @@ namespace org.whispersystems.curve25519.csharp
             Fe_cmov.fe_cmov(u, uneg, nonsquare);                /* x, or -x-A if nonsquare */
         }
 
-        public static void hash_to_point(ISha512 sha512provider, Ge_p3 p, byte[] iIn, int in_len)
+        public static void hash_to_point(ISha512 sha512provider, Ge_p3 p, ReadOnlySpan<byte> iIn, int in_len)
         {
-            byte[] hash = new byte[64];
+            byte[] hashArr = new byte[64];
+            Span<byte> hash = new Span<byte>(hashArr);
             int[] h = new int[10];
             int[] u = new int[10];
             byte sign_bit;
             Ge_p3 p3 = new Ge_p3();
 
-            sha512provider.calculateDigest(hash, iIn, in_len);
+            sha512provider.calculateDigest(hashArr, iIn.ToArray(), in_len);
 
             /* take the high bit as Edwards sign bit */
             sign_bit = (byte)(((uint)hash[31] & 0x80) >> 7);

@@ -15,11 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System;
+
 namespace org.whispersystems.curve25519.csharp
 {
     public class Keygen
     {
-        public static void curve25519_keygen(byte[] curve25519_pubkey_out, byte[] curve25519_privkey_in)
+        public static void curve25519_keygen(Span<byte> curve25519_pubkey_out, ReadOnlySpan<byte> curve25519_privkey_in)
         {
             /* Perform a fixed-base multiplication of the Edwards base point,
              * (which is efficient due to precalculated tables), then convert

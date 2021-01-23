@@ -15,11 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System;
+
 namespace org.whispersystems.curve25519.csharp
 {
     public class Sc_clamp
     {
-        public static void sc_clamp(byte[] a)
+        public static void sc_clamp(Span<byte> a)
         {
             a[0] &= 248;
             a[31] &= 127;

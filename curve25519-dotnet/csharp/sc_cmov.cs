@@ -15,11 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System;
+
 namespace org.whispersystems.curve25519.csharp
 {
     public class Sc_cmov
     {
-        public static void sc_cmov(byte[] f, byte[] g, byte b)
+        public static void sc_cmov(Span<byte> f, ReadOnlySpan<byte> g, byte b)
         {
             int count = 32;
             byte[] x = new byte[32];

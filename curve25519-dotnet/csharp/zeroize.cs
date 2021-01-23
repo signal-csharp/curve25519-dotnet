@@ -14,6 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+using System;
 
 namespace org.whispersystems.curve25519.csharp
 {
@@ -21,7 +22,7 @@ namespace org.whispersystems.curve25519.csharp
     {
         public const int ZEROIZE_STACK_SIZE = 1024;
 
-        public static void zeroize(byte[] b, int len)
+        public static void zeroize(Span<byte> b, int len)
         {
             for (int i = 0; i < len; i++)
             {

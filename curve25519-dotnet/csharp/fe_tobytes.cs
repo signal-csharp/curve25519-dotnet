@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System;
+
 namespace org.whispersystems.curve25519.csharp
 {
 
@@ -48,7 +50,7 @@ namespace org.whispersystems.curve25519.csharp
           so floor(2^(-255)(h + 19 2^(-25) h9 + 2^(-1))) = q.
         */
 
-        public static void fe_tobytes(byte[] s, int[] h)
+        public static void fe_tobytes(Span<byte> s, int[] h)
         {
             int h0 = h[0];
             int h1 = h[1];
@@ -140,7 +142,5 @@ namespace org.whispersystems.curve25519.csharp
             s[30] = (byte)(h9 >> 10);
             s[31] = (byte)(h9 >> 18);
         }
-
-
     }
 }

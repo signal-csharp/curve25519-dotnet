@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System;
+
 namespace org.whispersystems.curve25519.csharp {
 
     public class Ge_frombytes {
@@ -31,7 +33,7 @@ namespace org.whispersystems.curve25519.csharp {
 -32595792,-7943725,9377950,3500415,12389472,-272473,-25146209,-2005654,326686,11406482
 };
 
-        public static int ge_frombytes_negate_vartime(Ge_p3 h, byte[] s)
+        public static int ge_frombytes_negate_vartime(Ge_p3 h, ReadOnlySpan<byte> s)
         {
             int[] u = new int[10];
             int[] v = new int[10];
