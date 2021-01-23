@@ -4,10 +4,19 @@
     <TargetFramework>netstandard1.4</TargetFramework>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	<PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/signal-csharp/curve25519-dotnet</PackageProjectUrl>
     <RepositoryUrl>https://github.com/signal-csharp/curve25519-dotnet</RepositoryUrl>
     <Version>0.4.0</Version>
+    <Authors>Benni,golf1052,langboost</Authors>
+    <Description>.NET Standard C# implementation of curve25519 (and ed25519 for signing/verification) based on https://github.com/WhisperSystems/curve25519-java</Description>
+    <RepositoryUrl>https://github.com/signal-csharp/curve25519-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
