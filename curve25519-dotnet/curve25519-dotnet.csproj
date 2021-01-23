@@ -7,7 +7,7 @@
 	<PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/signal-csharp/curve25519-dotnet</PackageProjectUrl>
     <RepositoryUrl>https://github.com/signal-csharp/curve25519-dotnet</RepositoryUrl>
-    <Version>0.3.1</Version>
+    <Version>0.4.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
