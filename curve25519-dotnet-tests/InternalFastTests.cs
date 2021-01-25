@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using curve25519_dotnet.csharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using org.whispersystems.curve25519;
@@ -262,13 +261,13 @@ namespace curve25519Tests
         [TestMethod]
         public void generalized_xeddsa_fast_test()
         {
-            Span<byte> signature1 = new Span<byte>(new byte[64]);
-            Span<byte> signature2 = new Span<byte>(new byte[64]);
-            Span<byte> privkey = new Span<byte>(new byte[32]);
-            Span<byte> pubkey = new Span<byte>(new byte[32]);
-            Span<byte> msg1 = new Span<byte>(new byte[1000]);
-            Span<byte> msg2 = new Span<byte>(new byte[1000]);
-            Span<byte> random = new Span<byte>(new byte[64]);
+            byte[] signature1 = new byte[64];
+            byte[] signature2 = new byte[64];
+            byte[] privkey = new byte[32];
+            byte[] pubkey = new byte[32];
+            byte[] msg1 = new byte[1000];
+            byte[] msg2 = new byte[1000];
+            byte[] random = new byte[64];
 
             Arrays.Fill(privkey, 0xF0);
             Arrays.Fill(pubkey, 2);
@@ -285,10 +284,10 @@ namespace curve25519Tests
             Assert.AreEqual(0, Gen_x.generalized_xeddsa_25519_sign(sha512provider, signature1, privkey, msg1, 100, random, null, 0), "generalized xeddsa sign #1");
             Assert.AreEqual(0, Gen_x.generalized_xeddsa_25519_sign(sha512provider, signature2, privkey, msg2, 100, random, null, 0), "generalized xeddsa sign #2");
 
-            Assert.AreEqual(0, xeddsa.xed25519_verify(sha512provider, signature1.ToArray(), pubkey.ToArray(), msg1.ToArray(), 100), "generalized (old) xeddsa verify #1");
-            Assert.AreEqual(0, xeddsa.xed25519_verify(sha512provider, signature2.ToArray(), pubkey.ToArray(), msg2.ToArray(), 100), "generalized (old) xeddsa verify #2");
-            Assert.AreNotEqual(0, xeddsa.xed25519_verify(sha512provider, signature1.ToArray(), pubkey.ToArray(), msg2.ToArray(), 100), "generalized (old) xeddsa verify #3");
-            Assert.AreNotEqual(0, xeddsa.xed25519_verify(sha512provider, signature2.ToArray(), pubkey.ToArray(), msg1.ToArray(), 100), "generalized (old) xeddsa verify #4");
+            Assert.AreEqual(0, xeddsa.xed25519_verify(sha512provider, signature1, pubkey, msg1, 100), "generalized (old) xeddsa verify #1");
+            Assert.AreEqual(0, xeddsa.xed25519_verify(sha512provider, signature2, pubkey, msg2, 100), "generalized (old) xeddsa verify #2");
+            Assert.AreNotEqual(0, xeddsa.xed25519_verify(sha512provider, signature1, pubkey, msg2, 100), "generalized (old) xeddsa verify #3");
+            Assert.AreNotEqual(0, xeddsa.xed25519_verify(sha512provider, signature2, pubkey, msg1, 100), "generalized (old) xeddsa verify #4");
 
             Assert.AreEqual(0, Gen_x.generalized_xeddsa_25519_verify(sha512provider, signature1, pubkey, msg1, 100, null, 0), "generalized xeddsa verify #1");
             Assert.AreEqual(0, Gen_x.generalized_xeddsa_25519_verify(sha512provider, signature2, pubkey, msg2, 100, null, 0), "generalized xeddsa verify #2");
@@ -299,14 +298,14 @@ namespace curve25519Tests
         [TestMethod]
         public void generalized_xveddsa_fast_test()
         {
-            Span<byte> signature1 = new Span<byte>(new byte[96]);
-            Span<byte> signature2 = new Span<byte>(new byte[96]);
-            Span<byte> privkey = new Span<byte>(new byte[32]);
-            Span<byte> pubkey = new Span<byte>(new byte[32]);
-            Span<byte> msg1 = new Span<byte>(new byte[1000]);
-            Span<byte> msg2 = new Span<byte>(new byte[1000]);
-            Span<byte> random = new Span<byte>(new byte[64]);
-            Span<byte> vrf = new Span<byte>(new byte[32]);
+            byte[] signature1 = new byte[96];
+            byte[] signature2 = new byte[96];
+            byte[] privkey = new byte[32];
+            byte[] pubkey = new byte[32];
+            byte[] msg1 = new byte[1000];
+            byte[] msg2 = new byte[1000];
+            byte[] random = new byte[64];
+            byte[] vrf = new byte[32];
 
             Arrays.Fill(privkey, 1);
             Arrays.Fill(pubkey, 2);
@@ -328,16 +327,68 @@ namespace curve25519Tests
             Assert.AreNotEqual(0, Gen_x.generalized_xveddsa_25519_verify(sha512provider, vrf, signature1, pubkey, msg2, 100, null, 0), "generalized xveddsa verify #3");
             Assert.AreNotEqual(0, Gen_x.generalized_xveddsa_25519_verify(sha512provider, vrf, signature2, pubkey, msg1, 100, Encoding.UTF8.GetBytes("abc"), 3), "generalized xveddsa verify #4");
 
-            Span<byte> signature3 = new Span<byte>(new byte[96]);
-            Span<byte> vrf3 = new Span<byte>(new byte[96]);
+            byte[] signature3 = new byte[96];
+            byte[] vrf3 = new byte[96];
             random[0] ^= 1;
             Assert.AreEqual(0, Gen_x.generalized_xveddsa_25519_sign(sha512provider, signature3, privkey, msg1, 100, random, null, 0), "generalized xveddsa sign #3");
             Assert.AreEqual(0, Gen_x.generalized_xveddsa_25519_verify(sha512provider, vrf, signature1, pubkey, msg1, 100, null, 0), "generalized xveddsa verify #5");
             Assert.AreEqual(0, Gen_x.generalized_xveddsa_25519_verify(sha512provider, vrf3, signature3, pubkey, msg1, 100, null, 0), "generalized xveddsa verify #6");
-            Assert.IsTrue(vrf.SequenceEqual(vrf3.Slice(0, 32)), "generalized xveddsa VRFs equal");
-            Assert.IsTrue(signature1.Slice(0, 32).SequenceEqual(signature3.Slice(0, 32)), "generalized xveddsa Kv equal");
-            Assert.IsFalse(signature1.Slice(32, 32).SequenceEqual(signature3.Slice(32, 32)), "generalized xveddsa h not equal");
-            Assert.IsFalse(signature1.Slice(64, 32).SequenceEqual(signature3.Slice(64, 32)), "generalized xveddsa s not equal");
+            AssertAreArraysEqual(vrf, 0, vrf3, 0, 32, "generalized xveddsa VRFs equal");
+            AssertAreArraysEqual(signature1, 0, signature3, 0, 32, "generalized xveddsa Kv equal");
+            AssertAreArraysNotEqual(signature1, 32, signature3, 32, 32, "generalized xveddsa h not equal");
+            AssertAreArraysNotEqual(signature1, 64, signature3, 64, 32, "generalized xveddsa s not equal");
+        }
+
+        private void AssertAreArraysEqual<T>(T[] expected, int expectedIndex, T[] actual, int actualIndex, int length, string message = null)
+        {
+            if (!AreArraysEqual(expected, expectedIndex, actual, actualIndex, length))
+            {
+                if (message != null)
+                {
+                    Assert.Fail(message);
+                }
+                else
+                {
+                    Assert.Fail();
+                }
+            }
+        }
+
+        private void AssertAreArraysNotEqual<T>(T[] expected, int expectedIndex, T[] actual, int actualIndex, int length, string message = null)
+        {
+            if (AreArraysEqual(expected, expectedIndex, actual, actualIndex, length))
+            {
+                if (message != null)
+                {
+                    Assert.Fail(message);
+                }
+                else
+                {
+                    Assert.Fail();
+                }
+            }
+        }
+
+        private bool AreArraysEqual<T>(T[] expected, int expectedIndex, T[] actual, int actualIndex, int length)
+        {
+            if (!ReferenceEquals(expected, actual))
+            {
+                if ((expected == null) || (actual == null))
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < length; i++)
+                {
+                    bool areEqual = object.Equals(expected[i + expectedIndex], actual[i + actualIndex]);
+                    if (!areEqual)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }

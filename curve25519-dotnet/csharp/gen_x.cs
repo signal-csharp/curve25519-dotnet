@@ -5,7 +5,7 @@ namespace org.whispersystems.curve25519.csharp
 {
     public class Gen_x
     {
-        public static int convert_25519_pubkey(Span<byte> ed_pubkey_bytes, ReadOnlySpan<byte> x25519_pubkey_bytes)
+        public static int convert_25519_pubkey(byte[] ed_pubkey_bytes, byte[] x25519_pubkey_bytes)
         {
             int[] u = new int[10];
             int[] y = new int[10];
@@ -24,10 +24,10 @@ namespace org.whispersystems.curve25519.csharp
             return 0;
         }
 
-        public static int calculate_25519_keypair(Span<byte> K_bytes, Span<byte> k_scalar,
-            ReadOnlySpan<byte> x25519_privkey_scalar)
+        public static int calculate_25519_keypair(byte[] K_bytes, byte[] k_scalar,
+            byte[] x25519_privkey_scalar)
         {
-            Span<byte> kneg = new Span<byte>(new byte[Gen_constants.SCALARLEN]);
+            byte[] kneg = new byte[Gen_constants.SCALARLEN];
             Ge_p3 ed_pubkey_point = new Ge_p3();
             byte sign_bit = 0;
 
@@ -40,7 +40,7 @@ namespace org.whispersystems.curve25519.csharp
 
             /* Force Edwards sign bit to zero */
             sign_bit = (byte)((K_bytes[31] & 0x80) >> 7);
-            x25519_privkey_scalar.Slice(0, 32).CopyTo(k_scalar);
+            Array.Copy(x25519_privkey_scalar, 0, k_scalar, 0, 32);
             Sc_neg.sc_neg(kneg, k_scalar);
             Sc_cmov.sc_cmov(k_scalar, kneg, sign_bit);
             K_bytes[31] &= 0x7F;
@@ -49,15 +49,15 @@ namespace org.whispersystems.curve25519.csharp
             return 0;
         }
 
-        public static int generalized_xeddsa_25519_sign(ISha512 sha512provider, Span<byte> signature_out,
-            ReadOnlySpan<byte> x25519_privkey_scalar,
-            ReadOnlySpan<byte> msg, uint msg_len,
-            ReadOnlySpan<byte> random,
-            ReadOnlySpan<byte> customization_label,
+        public static int generalized_xeddsa_25519_sign(ISha512 sha512provider, byte[] signature_out,
+            byte[] x25519_privkey_scalar,
+            byte[] msg, uint msg_len,
+            byte[] random,
+            byte[] customization_label,
             uint customization_label_len)
         {
-            Span<byte> K_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
-            Span<byte> k_scalar = new Span<byte>(new byte[Gen_constants.SCALARLEN]);
+            byte[] K_bytes = new byte[Gen_constants.POINTLEN];
+            byte[] k_scalar = new byte[Gen_constants.SCALARLEN];
             int retval = -1;
 
             if (calculate_25519_keypair(K_bytes, k_scalar, x25519_privkey_scalar) != 0)
@@ -73,16 +73,16 @@ namespace org.whispersystems.curve25519.csharp
 
         public static int generalized_xveddsa_25519_sign(
             ISha512 sha512provider,
-            Span<byte> signature_out,
-            ReadOnlySpan<byte> x25519_privkey_scalar,
-            ReadOnlySpan<byte> msg,
+            byte[] signature_out,
+            byte[] x25519_privkey_scalar,
+            byte[] msg,
             uint msg_len,
-            ReadOnlySpan<byte> random,
-            ReadOnlySpan<byte> customization_label,
+            byte[] random,
+            byte[] customization_label,
             uint customization_label_len)
         {
-            Span<byte> K_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
-            Span<byte> k_scalar = new Span<byte>(new byte[Gen_constants.SCALARLEN]);
+            byte[] K_bytes = new byte[Gen_constants.POINTLEN];
+            byte[] k_scalar = new byte[Gen_constants.SCALARLEN];
             int retval = -1;
 
             if (calculate_25519_keypair(K_bytes, k_scalar, x25519_privkey_scalar) != 0)
@@ -97,14 +97,14 @@ namespace org.whispersystems.curve25519.csharp
 
         public static int generalized_xeddsa_25519_verify(
             ISha512 sha512provider,
-            ReadOnlySpan<byte> signature,
-            ReadOnlySpan<byte> x25519_pubkey_bytes,
-            ReadOnlySpan<byte> msg,
+            byte[] signature,
+            byte[] x25519_pubkey_bytes,
+            byte[] msg,
             uint msg_len,
-            ReadOnlySpan<byte> customization_label,
+            byte[] customization_label,
             uint customization_label_len)
         {
-            Span<byte> K_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
+            byte[] K_bytes = new byte[Gen_constants.POINTLEN];
 
             if (convert_25519_pubkey(K_bytes, x25519_pubkey_bytes) != 0)
                 return -1;
@@ -115,15 +115,15 @@ namespace org.whispersystems.curve25519.csharp
 
         public static int generalized_xveddsa_25519_verify(
             ISha512 sha512provider,
-            Span<byte> vrf_out,
-            ReadOnlySpan<byte> signature,
-            ReadOnlySpan<byte> x25519_pubkey_bytes,
-            ReadOnlySpan<byte> msg,
+            byte[] vrf_out,
+            byte[] signature,
+            byte[] x25519_pubkey_bytes,
+            byte[] msg,
             uint msg_len,
-            ReadOnlySpan<byte> customization_label,
+            byte[] customization_label,
             uint customization_label_len)
         {
-            Span<byte> K_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
+            byte[] K_bytes = new byte[Gen_constants.POINTLEN];
 
             if (convert_25519_pubkey(K_bytes, x25519_pubkey_bytes) != 0)
                 return -1;

@@ -15,8 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
-
 namespace org.whispersystems.curve25519.csharp
 {
 
@@ -27,7 +25,7 @@ namespace org.whispersystems.curve25519.csharp
         //CONVERT #include "long.h"
         //CONVERT #include "long.h"
 
-        public static long load_3(ReadOnlySpan<byte> bIn, int index)
+        public static long load_3(byte[] bIn, int index)
         {
             long result;
             result = ((long)bIn[index + 0]) & 0xFF;
@@ -36,7 +34,7 @@ namespace org.whispersystems.curve25519.csharp
             return result;
         }
 
-        public static long load_4(ReadOnlySpan<byte> bIn, int index)
+        public static long load_4(byte[] bIn, int index)
         {
             long result;
             result = (((long)bIn[index + 0]) & 0xFF);
@@ -50,7 +48,7 @@ namespace org.whispersystems.curve25519.csharp
         Ignores top bit of h.
         */
 
-        public static void fe_frombytes(int[] h, ReadOnlySpan<byte> s)
+        public static void fe_frombytes(int[] h, byte[] s)
         {
             long h0 = load_4(s, 0);
             long h1 = load_3(s, 4) << 6;

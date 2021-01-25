@@ -15,8 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
-
 namespace org.whispersystems.curve25519.csharp
 {
 
@@ -41,7 +39,7 @@ namespace org.whispersystems.curve25519.csharp
 
         //CONVERT #include "ge.h"
 
-        public static void slide(sbyte[] r, ReadOnlySpan<byte> a)
+        public static void slide(sbyte[] r, byte[] a)
         {
             int i;
             int b;
@@ -139,7 +137,7 @@ namespace org.whispersystems.curve25519.csharp
         B is the Ed25519 base point (x,4/5) with x positive.
         */
 
-        public static void ge_double_scalarmult_vartime(Ge_p2 r, ReadOnlySpan<byte> a, Ge_p3 A, ReadOnlySpan<byte> b)
+        public static void ge_double_scalarmult_vartime(Ge_p2 r, byte[] a, Ge_p3 A, byte[] b)
         {
             sbyte[] aslide = new sbyte[256];
             sbyte[] bslide = new sbyte[256];

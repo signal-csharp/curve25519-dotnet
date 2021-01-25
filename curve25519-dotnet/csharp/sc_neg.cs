@@ -15,8 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
-
 namespace org.whispersystems.curve25519.csharp
 {
     public class Sc_neg
@@ -39,9 +37,9 @@ namespace org.whispersystems.curve25519.csharp
         };
 
         /* b = -a (mod l) */
-        public static void sc_neg(Span<byte> b, ReadOnlySpan<byte> a)
+        public static void sc_neg(byte[] b, byte[] a)
         {
-            ReadOnlySpan<byte> zero = new ReadOnlySpan<byte>(new byte[32]);
+            byte[] zero = new byte[32];
             //memset(zero, 0, 32);
             Sc_muladd.sc_muladd(b, lminus1, a, zero); /* b = (-1)a + 0   (mod l) */
         }

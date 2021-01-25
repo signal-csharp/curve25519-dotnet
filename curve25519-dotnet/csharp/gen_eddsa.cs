@@ -13,19 +13,18 @@ namespace org.whispersystems.curve25519.csharp
            M: buffer containing message, message starts at M_start, continues for M_len
            r = hash(B || labelset || Z || pad1 || k || pad2 || labelset || K || extra || M) (mod q)
         */
-        public static int generalized_commit(ISha512 sha512provider, Span<byte> R_bytes, Span<byte> r_scalar,
-            ReadOnlySpan<byte> labelset, uint labelset_len,
-            ReadOnlySpan<byte> extra, uint extra_len,
-            ReadOnlySpan<byte> K_bytes, ReadOnlySpan<byte> k_scalar,
-            ReadOnlySpan<byte> Z,
-            Span<byte> M_buf, uint M_start, uint M_len)
+        public static int generalized_commit(ISha512 sha512provider, byte[] R_bytes, byte[] r_scalar,
+            byte[] labelset, uint labelset_len,
+            byte[] extra, uint extra_len,
+            byte[] K_bytes, byte[] k_scalar,
+            byte[] Z,
+            byte[] M_buf, uint M_start, uint M_len)
         {
             Ge_p3 R_point = new Ge_p3();
-            byte[] hashArr = new byte[Gen_constants.HASHLEN];
-            Span<byte> hash = new Span<byte>(hashArr);
-            Span<byte> bufstart = null;
-            Span<byte> bufptr = null;
-            Span<byte> bufend = null;
+            byte[] hash = new byte[Gen_constants.HASHLEN];
+            int bufstart = 0;
+            int? bufptr = 0;
+            int bufend = 0;
             uint prefix_len = 0;
 
             if (Gen_labelset.labelset_validate(labelset, labelset_len) != 0)
@@ -74,33 +73,35 @@ namespace org.whispersystems.curve25519.csharp
                 return -1;
             }
 
-            bufstart = M_buf.Slice((int)(M_start - prefix_len));
+            bufstart = (int)(M_start - prefix_len);
             bufptr = bufstart;
-            bufend = bufstart; // bufend isn't actually used but it cannot be null
-            bufptr = Gen_labelset.buffer_add(bufptr, bufend, Gen_labelset.B_bytes, Gen_constants.POINTLEN);
-            bufptr = Gen_labelset.buffer_add(bufptr, bufend, labelset, labelset_len);
-            bufptr = Gen_labelset.buffer_add(bufptr, bufend, Z, Gen_constants.RANDLEN);
-            bufptr = Gen_labelset.buffer_pad(bufstart, bufptr, bufend);
-            bufptr = Gen_labelset.buffer_add(bufptr, bufend, k_scalar, Gen_constants.SCALARLEN);
-            bufptr = Gen_labelset.buffer_pad(bufstart, bufptr, bufend);
-            bufptr = Gen_labelset.buffer_add(bufptr, bufend, labelset, labelset_len);
-            bufptr = Gen_labelset.buffer_add(bufptr, bufend, K_bytes, Gen_constants.POINTLEN);
-            bufptr = Gen_labelset.buffer_add(bufptr, bufend, extra, extra_len);
-            if (bufptr == null || bufptr.Length != M_buf.Slice((int)M_start).Length)
+            bufend = (int)M_start;
+            bufptr += Gen_labelset.buffer_add(M_buf, bufptr, Gen_labelset.B_bytes, Gen_constants.POINTLEN);
+            bufptr += Gen_labelset.buffer_add(M_buf, bufptr, labelset, labelset_len);
+            bufptr += Gen_labelset.buffer_add(M_buf, bufptr, Z, Gen_constants.RANDLEN);
+            bufptr += Gen_labelset.buffer_pad(M_buf, bufstart, bufptr, bufend);
+            bufptr += Gen_labelset.buffer_add(M_buf, bufptr, k_scalar, Gen_constants.SCALARLEN);
+            bufptr += Gen_labelset.buffer_pad(M_buf, bufstart, bufptr, bufend);
+            bufptr += Gen_labelset.buffer_add(M_buf, bufptr, labelset, labelset_len);
+            bufptr += Gen_labelset.buffer_add(M_buf, bufptr, K_bytes, Gen_constants.POINTLEN);
+            bufptr += Gen_labelset.buffer_add(M_buf, bufptr, extra, extra_len);
+            if (bufptr != bufend || bufptr != M_start || bufptr - bufstart != prefix_len)
             {
                 Zeroize.zeroize(hash, (int)Gen_constants.HASHLEN);
                 Zeroize.zeroize(M_buf, (int)M_start);
                 return -1;
             }
 
-            sha512provider.calculateDigest(hashArr, M_buf.Slice((int)(M_start - prefix_len)).ToArray(), prefix_len + M_len);
+            byte[] hashIn = new byte[prefix_len + M_len];
+            Array.Copy(M_buf, (int)(M_start - prefix_len), hashIn, 0, (int)(prefix_len + M_len));
+            sha512provider.calculateDigest(hash, hashIn, prefix_len + M_len);
             Sc_reduce.sc_reduce(hash);
             Ge_scalarmult_base.ge_scalarmult_base(R_point, hash);
             Ge_p3_tobytes.ge_p3_tobytes(R_bytes, R_point);
-            hash.Slice(0, (int)Gen_constants.SCALARLEN).CopyTo(r_scalar);
+            Array.Copy(hash, 0, r_scalar, 0, (int)Gen_constants.SCALARLEN);
 
             Zeroize.zeroize(hash, (int)Gen_constants.HASHLEN);
-            Zeroize.zeroize(bufstart, (int)prefix_len);
+            Zeroize.zeroize(M_buf, bufstart, (int)prefix_len);
             return 0;
         }
 
@@ -109,18 +110,17 @@ namespace org.whispersystems.curve25519.csharp
            else:
                return hash(B || labelset || R || labelset || K || extra || M) (mod q)
         */
-        public static int generalized_challenge(ISha512 sha512provider, Span<byte> h_scalar,
-            ReadOnlySpan<byte> labelset, uint labelset_len,
-            ReadOnlySpan<byte> extra, uint extra_len,
-            ReadOnlySpan<byte> R_bytes,
-            ReadOnlySpan<byte> K_bytes,
-            Span<byte> M_buf, uint M_start, uint M_len)
+        public static int generalized_challenge(ISha512 sha512provider, byte[] h_scalar,
+            byte[] labelset, uint labelset_len,
+            byte[] extra, uint extra_len,
+            byte[] R_bytes,
+            byte[] K_bytes,
+            byte[] M_buf, uint M_start, uint M_len)
         {
-            byte[] hashArr = new byte[Gen_constants.HASHLEN];
-            Span<byte> hash = new Span<byte>(hashArr);
-            Span<byte> bufstart = null;
-            Span<byte> bufptr = null;
-            Span<byte> bufend = null;
+            byte[] hash = new byte[Gen_constants.HASHLEN];
+            int bufstart = 0;
+            int? bufptr = null;
+            int bufend = 0;
             uint prefix_len = 0;
 
             if (Gen_labelset.labelset_validate(labelset, labelset_len) != 0)
@@ -138,8 +138,8 @@ namespace org.whispersystems.curve25519.csharp
             {
                 if (2 * Gen_constants.POINTLEN > M_start)
                     return -1;
-                R_bytes.Slice(0, (int)Gen_constants.POINTLEN).CopyTo(M_buf.Slice((int)M_start - (2 * (int)Gen_constants.POINTLEN)));
-                K_bytes.Slice(0, (int)Gen_constants.POINTLEN).CopyTo(M_buf.Slice((int)M_start - (1 * (int)Gen_constants.POINTLEN)));
+                Array.Copy(R_bytes, 0, M_buf, (int)M_start - (2 * (int)Gen_constants.POINTLEN), (int)Gen_constants.POINTLEN);
+                Array.Copy(K_bytes, 0, M_buf, (int)M_start - (1 * (int)Gen_constants.POINTLEN), (int)Gen_constants.POINTLEN);
                 prefix_len = 2 * Gen_constants.POINTLEN;
             }
             else
@@ -148,38 +148,41 @@ namespace org.whispersystems.curve25519.csharp
                 if (prefix_len > M_start)
                     return -1;
 
-                bufstart = M_buf.Slice((int)(M_start - prefix_len));
+                bufstart = (int)(M_start - prefix_len);
                 bufptr = bufstart;
-                bufend = new Span<byte>(new byte[0]); // bufend isn't actually used but it cannot be null
-                bufptr = Gen_labelset.buffer_add(bufptr, bufend, Gen_labelset.B_bytes, Gen_constants.POINTLEN);
-                bufptr = Gen_labelset.buffer_add(bufptr, bufend, labelset, labelset_len);
-                bufptr = Gen_labelset.buffer_add(bufptr, bufend, R_bytes, Gen_constants.POINTLEN);
-                bufptr = Gen_labelset.buffer_add(bufptr, bufend, labelset, labelset_len);
-                bufptr = Gen_labelset.buffer_add(bufptr, bufend, K_bytes, Gen_constants.POINTLEN);
-                bufptr = Gen_labelset.buffer_add(bufptr, bufend, extra, extra_len);
-
-                if (bufptr == null || bufptr.Length != M_buf.Slice((int)M_start).Length)
+                bufend = (int)M_start;
+                bufptr += Gen_labelset.buffer_add(M_buf, bufptr, Gen_labelset.B_bytes, Gen_constants.POINTLEN);
+                bufptr += Gen_labelset.buffer_add(M_buf, bufptr, labelset, labelset_len);
+                bufptr += Gen_labelset.buffer_add(M_buf, bufptr, R_bytes, Gen_constants.POINTLEN);
+                bufptr += Gen_labelset.buffer_add(M_buf, bufptr, labelset, labelset_len);
+                bufptr += Gen_labelset.buffer_add(M_buf, bufptr, K_bytes, Gen_constants.POINTLEN);
+                bufptr += Gen_labelset.buffer_add(M_buf, bufptr, extra, extra_len);
+                if (bufptr == null)
+                    return -1;
+                if (bufptr != bufend || bufptr != M_start || bufptr - bufstart != prefix_len)
                     return -1;
             }
 
-            sha512provider.calculateDigest(hashArr, M_buf.Slice((int)(M_start - prefix_len)).ToArray(), prefix_len + M_len);
+            byte[] hashIn = new byte[prefix_len + M_len];
+            Array.Copy(M_buf, (int)(M_start - prefix_len), hashIn, 0, (int)(prefix_len + M_len));
+            sha512provider.calculateDigest(hash, hashIn, prefix_len + M_len);
             Sc_reduce.sc_reduce(hash);
-            hash.Slice(0, (int)Gen_constants.SCALARLEN).CopyTo(h_scalar);
+            Array.Copy(hash, h_scalar, (int)Gen_constants.SCALARLEN);
             return 0;
         }
 
         /* return r + kh (mod q) */
-        public static int generalized_prove(Span<byte> out_scalar,
-            ReadOnlySpan<byte> r_scalar, ReadOnlySpan<byte> k_scalar, ReadOnlySpan<byte> h_scalar)
+        public static int generalized_prove(byte[] out_scalar,
+            byte[] r_scalar, byte[] k_scalar, byte[] h_scalar)
         {
             Sc_muladd.sc_muladd(out_scalar, h_scalar, k_scalar, r_scalar);
             //zeroize_stack();
             return 0;
         }
 
-        public static int generalized_solve_commitment(Span<byte> R_bytes_out, Ge_p3 K_point_out,
-            Ge_p3 B_point, ReadOnlySpan<byte> s_scalar,
-            ReadOnlySpan<byte> K_bytes, ReadOnlySpan<byte> h_scalar)
+        public static int generalized_solve_commitment(byte[] R_bytes_out, Ge_p3 K_point_out,
+            Ge_p3 B_point, byte[] s_scalar,
+            byte[] K_bytes, byte[] h_scalar)
         {
             Ge_p3 Kneg_point = new Ge_p3();
             Ge_p2 R_calc_point_p2 = new Ge_p2();
@@ -223,28 +226,28 @@ namespace org.whispersystems.curve25519.csharp
 
         public static int generalized_eddsa_25519_sign(
             ISha512 sha512provider,
-            Span<byte> signature_out,
-            ReadOnlySpan<byte> eddsa_25519_pubkey_bytes,
-            ReadOnlySpan<byte> eddsa_25519_privkey_scalar,
-            ReadOnlySpan<byte> msg,
+            byte[] signature_out,
+            byte[] eddsa_25519_pubkey_bytes,
+            byte[] eddsa_25519_privkey_scalar,
+            byte[] msg,
             uint msg_len,
-            ReadOnlySpan<byte> random,
-            ReadOnlySpan<byte> customization_label,
+            byte[] random,
+            byte[] customization_label,
             uint customization_label_len)
         {
-            Span<byte> labelset = new Span<byte>(new byte[Gen_constants.LABELSETMAXLEN]);
+            byte[] labelset = new byte[Gen_constants.LABELSETMAXLEN];
             uint labelset_len = 0;
-            Span<byte> R_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
-            Span<byte> r_scalar = new Span<byte>(new byte[Gen_constants.SCALARLEN]);
-            Span<byte> h_scalar = new Span<byte>(new byte[Gen_constants.SCALARLEN]);
-            Span<byte> s_scalar = new Span<byte>(new byte[Gen_constants.SCALARLEN]);
-            Span<byte> M_buf = null;
+            byte[] R_bytes = new byte[Gen_constants.POINTLEN];
+            byte[] r_scalar = new byte[Gen_constants.SCALARLEN];
+            byte[] h_scalar = new byte[Gen_constants.SCALARLEN];
+            byte[] s_scalar = new byte[Gen_constants.SCALARLEN];
+            byte[] M_buf = null;
 
             // memset(signature_out, 0, SIGNATURELEN);
 
-            M_buf = new Span<byte>(new byte[msg_len + Gen_constants.MSTART]);
+            M_buf = new byte[msg_len + Gen_constants.MSTART];
             // we slice to msg_len because the msg buffer may be longer than msg_len
-            msg.Slice(0, (int)msg_len).CopyTo(M_buf.Slice((int)Gen_constants.MSTART));
+            Array.Copy(msg, 0, M_buf, (int)Gen_constants.MSTART, (int)msg_len);
 
             // TODO: In curve25519-java labelset_new defines customization_label_len as a const unsigned char but in
             // this method it's defined as a const unsigned long. Is this a bug in curve25519-java?
@@ -284,8 +287,8 @@ namespace org.whispersystems.curve25519.csharp
                 return -1;
             }
 
-            R_bytes.CopyTo(signature_out);
-            s_scalar.CopyTo(signature_out.Slice((int)Gen_constants.POINTLEN));
+            Array.Copy(R_bytes, signature_out, (int)Gen_constants.POINTLEN);
+            Array.Copy(s_scalar, 0, signature_out, (int)Gen_constants.POINTLEN, (int)Gen_constants.SCALARLEN);
 
             Zeroize.zeroize(r_scalar, (int)Gen_constants.SCALARLEN);
             //zeroize_stack();
@@ -295,24 +298,24 @@ namespace org.whispersystems.curve25519.csharp
 
         public static int generalized_eddsa_25519_verify(
             ISha512 sha512provider,
-            ReadOnlySpan<byte> signature,
-            ReadOnlySpan<byte> eddsa_25519_pubkey_bytes,
-            ReadOnlySpan<byte> msg,
+            byte[] signature,
+            byte[] eddsa_25519_pubkey_bytes,
+            byte[] msg,
             uint msg_len,
-            ReadOnlySpan<byte> customization_label,
+            byte[] customization_label,
             uint customization_label_len)
         {
-            Span<byte> labelset = new Span<byte>(new byte[Gen_constants.LABELSETMAXLEN]);
+            byte[] labelset = new byte[Gen_constants.LABELSETMAXLEN];
             uint labelset_len = 0;
-            ReadOnlySpan<byte> R_bytes = null;
-            ReadOnlySpan<byte> s_scalar = null;
-            Span<byte> h_scalar = new Span<byte>(new byte[Gen_constants.SCALARLEN]);
-            Span<byte> M_buf = null;
-            Span<byte> R_calc_bytes = new byte[Gen_constants.POINTLEN];
+            byte[] R_bytes = null;
+            byte[] s_scalar = null;
+            byte[] h_scalar = new byte[Gen_constants.SCALARLEN];
+            byte[] M_buf = null;
+            byte[] R_calc_bytes = new byte[Gen_constants.POINTLEN];
 
-            M_buf = new Span<byte>(new byte[msg_len + Gen_constants.MSTART]);
+            M_buf = new byte[msg_len + Gen_constants.MSTART];
             // we slice to msg_len because the msg buffer may be longer than msg_len
-            msg.Slice(0, (int)msg_len).CopyTo(M_buf.Slice((int)Gen_constants.MSTART));
+            Array.Copy(msg, 0, M_buf, (int)Gen_constants.MSTART, (int)msg_len);
 
             if (Gen_labelset.labelset_new(labelset, ref labelset_len, Gen_constants.LABELSETMAXLEN, null, 0,
                 customization_label, (byte)customization_label_len) != 0)
@@ -321,7 +324,8 @@ namespace org.whispersystems.curve25519.csharp
             }
 
             R_bytes = signature;
-            s_scalar = signature.Slice((int)Gen_constants.POINTLEN);
+            s_scalar = new byte[signature.Length - Gen_constants.POINTLEN];
+            Array.Copy(R_bytes, (int)Gen_constants.POINTLEN, s_scalar, 0, signature.Length - (int)Gen_constants.POINTLEN);
 
             if (!Point_isreduced.point_isreduced(eddsa_25519_pubkey_bytes))
                 return -1;

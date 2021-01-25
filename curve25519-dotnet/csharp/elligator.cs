@@ -84,16 +84,15 @@ namespace org.whispersystems.curve25519.csharp
             Fe_cmov.fe_cmov(u, uneg, nonsquare);                /* x, or -x-A if nonsquare */
         }
 
-        public static void hash_to_point(ISha512 sha512provider, Ge_p3 p, ReadOnlySpan<byte> iIn, int in_len)
+        public static void hash_to_point(ISha512 sha512provider, Ge_p3 p, byte[] iIn, int in_len)
         {
-            byte[] hashArr = new byte[64];
-            Span<byte> hash = new Span<byte>(hashArr);
+            byte[] hash = new byte[64];
             int[] h = new int[10];
             int[] u = new int[10];
             byte sign_bit;
             Ge_p3 p3 = new Ge_p3();
 
-            sha512provider.calculateDigest(hashArr, iIn.ToArray(), in_len);
+            sha512provider.calculateDigest(hash, iIn, in_len);
 
             /* take the high bit as Edwards sign bit */
             sign_bit = (byte)(((uint)hash[31] & 0x80) >> 7);

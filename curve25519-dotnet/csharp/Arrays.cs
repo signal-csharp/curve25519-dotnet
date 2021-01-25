@@ -15,25 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
-
 namespace org.whispersystems.curve25519.csharp
 {
 
     public class Arrays
     {
         /// <summary>
-        /// Assigns the specified byte value to each element of the specified span
+        /// Assigns the specified byte value to each element of the specified array
         /// of bytes.
         /// </summary>
         /// <param name="a">the array to be filled</param>
-        /// <param name="val">the value to be stored in all elements of the span</param>
-        public static void Fill(Span<byte> a, byte val)
+        /// <param name="val">the value to be stored in all elements of the array</param>
+        public static void Fill(byte[] a, byte val)
         {
             Fill(a, val, (uint)a.Length);
         }
 
-        public static void Fill(Span<byte> a, byte val, uint length)
+        public static void Fill(byte[] a, byte val, uint length)
         {
             for (int i = 0; i < length; i++)
                 a[i] = val;

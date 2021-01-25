@@ -15,8 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
-
 namespace org.whispersystems.curve25519.csharp
 {
 
@@ -25,7 +23,7 @@ namespace org.whispersystems.curve25519.csharp
 
         //CONVERT #include "ge.h"
 
-        public static void ge_tobytes(Span<byte> s, Ge_p2 h)
+        public static void ge_tobytes(byte[] s, Ge_p2 h)
         {
             int[] recip = new int[10];
             int[] x = new int[10];

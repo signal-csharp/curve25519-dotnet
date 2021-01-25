@@ -295,12 +295,12 @@ namespace curve25519Tests
 
             int count;
             const int MSG_LEN = 200;
-            Span<byte> privkey = new Span<byte>(new byte[32]);
-            Span<byte> pubkey = new Span<byte>(new byte[32]);
-            Span<byte> signature = new Span<byte>(new byte[96]);
-            Span<byte> msg = new Span<byte>(new byte[MSG_LEN]);
-            Span<byte> random = new Span<byte>(new byte[64]);
-            Span<byte> vrf_out = new Span<byte>(new byte[32]);
+            byte[] privkey = new byte[32];
+            byte[] pubkey = new byte[32];
+            byte[] signature = new byte[96];
+            byte[] msg = new byte[MSG_LEN];
+            byte[] random = new byte[64];
+            byte[] vrf_out = new byte[32];
 
             Arrays.Fill(signature, 3);
 
@@ -308,12 +308,11 @@ namespace curve25519Tests
             Debug.WriteLine("Pseudorandom XVEdDSA...");
             for (count = 1; count <= iterations; count++)
             {
-                byte[] bArr = new byte[64];
-                Span<byte> b = bArr;
-                sha512provider.calculateDigest(bArr, signature.ToArray(), 96);
-                b.Slice(0, 32).CopyTo(privkey);
-                sha512provider.calculateDigest(bArr, privkey.ToArray(), 32);
-                b.Slice(0, 64).CopyTo(random);
+                byte[] b = new byte[64];
+                sha512provider.calculateDigest(b, signature, 96);
+                Array.Copy(b, 0, privkey, 0, 32);
+                sha512provider.calculateDigest(b, privkey, 32);
+                Array.Copy(b, 0, random, 0, 64);
 
                 Sc_clamp.sc_clamp(privkey);
                 Keygen.curve25519_keygen(pubkey, privkey);
@@ -342,12 +341,12 @@ namespace curve25519Tests
 
                 if (count == 10000)
                 {
-                    CollectionAssert.AreEqual(signature_10k_correct, signature.ToArray(), $"XVEDDSA 10K doesn't match {count}");
+                    CollectionAssert.AreEqual(signature_10k_correct, signature, $"XVEDDSA 10K doesn't match {count}");
                 }
 
                 if (count == 100000)
                 {
-                    CollectionAssert.AreEqual(signature_100k_correct, signature.ToArray(), $"XVEDDSA 100K doesn't match {count}");
+                    CollectionAssert.AreEqual(signature_100k_correct, signature, $"XVEDDSA 100K doesn't match {count}");
                 }
             }
         }

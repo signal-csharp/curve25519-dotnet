@@ -6,9 +6,9 @@ namespace org.whispersystems.curve25519.csharp
     public class Gen_veddsa
     {
         public static int generalized_calculate_Bv(ISha512 sha512provider, Ge_p3 Bv_point,
-            ReadOnlySpan<byte> labelset, uint labelset_len,
-            ReadOnlySpan<byte> K_bytes,
-            Span<byte> M_buf, uint M_start, uint M_len)
+            byte[] labelset, uint labelset_len,
+            byte[] K_bytes,
+            byte[] M_buf, uint M_start, uint M_len)
         {
             uint prefix_len = 0;
 
@@ -21,25 +21,26 @@ namespace org.whispersystems.curve25519.csharp
             if (prefix_len > M_start)
                 return -1;
 
-            Gen_labelset.B_bytes.AsSpan(0, (int)Gen_constants.POINTLEN).CopyTo(M_buf.Slice((int)(M_start - prefix_len)));
-            labelset.Slice(0, (int)labelset_len).CopyTo(M_buf.Slice((int)(M_start - prefix_len + Gen_constants.POINTLEN)));
-            K_bytes.Slice(0, (int)Gen_constants.POINTLEN).CopyTo(M_buf.Slice((int)(M_start - prefix_len + Gen_constants.POINTLEN + labelset_len)));
-            Elligator.hash_to_point(sha512provider, Bv_point, M_buf.Slice((int)(M_start - prefix_len)), (int)(prefix_len + M_len));
+            Array.Copy(Gen_labelset.B_bytes, 0, M_buf, (int)(M_start - prefix_len), (int)Gen_constants.POINTLEN);
+            Array.Copy(labelset, 0, M_buf, (int)(M_start - prefix_len + Gen_constants.POINTLEN), (int)labelset_len);
+            Array.Copy(K_bytes, 0, M_buf, (int)(M_start - prefix_len + Gen_constants.POINTLEN + labelset_len), (int)Gen_constants.POINTLEN);
+            byte[] _in = new byte[prefix_len + M_len];
+            Array.Copy(M_buf, (int)(M_start - prefix_len), _in, 0, (int)(prefix_len + M_len));
+            Elligator.hash_to_point(sha512provider, Bv_point, _in, (int)(prefix_len + M_len));
             if (Ge_isneutral.ge_isneutral(Bv_point) != 0)
                 return -1;
             return 0;
         }
 
-        public static int generalized_calculate_vrf_output(ISha512 sha512provider, Span<byte> vrf_output,
-            ReadOnlySpan<byte> labelset, uint labelset_len,
+        public static int generalized_calculate_vrf_output(ISha512 sha512provider, byte[] vrf_output,
+            byte[] labelset, uint labelset_len,
             Ge_p3 cKv_point)
         {
             byte[] buf = new byte[Gen_constants.BUFLEN];
-            Span<byte> bufptr = buf;
-            Span<byte> bufend = new Span<byte>(new byte[0]);
-            Span<byte> cKv_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
-            byte[] hashArr = new byte[Gen_constants.HASHLEN];
-            Span<byte> hash = new Span<byte>(hashArr);
+            int? bufptr = 0;
+            int bufend = (int)Gen_constants.BUFLEN;
+            byte[] cKv_bytes = new byte[Gen_constants.POINTLEN];
+            byte[] hash = new byte[Gen_constants.HASHLEN];
 
             if (labelset_len + 2 * Gen_constants.POINTLEN > Gen_constants.BUFLEN)
                 return -1;
@@ -50,49 +51,49 @@ namespace org.whispersystems.curve25519.csharp
 
             Ge_p3_tobytes.ge_p3_tobytes(cKv_bytes, cKv_point);
 
-            bufptr = Gen_labelset.buffer_add(bufptr, bufend, Gen_labelset.B_bytes, Gen_constants.POINTLEN);
-            bufptr = Gen_labelset.buffer_add(bufptr, bufend, labelset, labelset_len);
-            bufptr = Gen_labelset.buffer_add(bufptr, bufend, cKv_bytes, Gen_constants.POINTLEN);
+            bufptr += Gen_labelset.buffer_add(buf, bufptr, Gen_labelset.B_bytes, (int)Gen_constants.POINTLEN);
+            bufptr += Gen_labelset.buffer_add(buf, bufptr, labelset, labelset_len);
+            bufptr += Gen_labelset.buffer_add(buf, bufptr, cKv_bytes, Gen_constants.POINTLEN);
             if (bufptr == null)
                 return -1;
-            //if (bufptr - buf > BUFLEN)
-            //return -1;
-            sha512provider.calculateDigest(hashArr, buf, Gen_constants.POINTLEN + labelset_len + Gen_constants.POINTLEN);
-            hash.Slice(0, (int)Gen_constants.VRFOUTPUTLEN).CopyTo(vrf_output);
+            if (bufptr > Gen_constants.BUFLEN)
+                return -1;
+            sha512provider.calculateDigest(hash, buf, Gen_constants.POINTLEN + labelset_len + Gen_constants.POINTLEN);
+            Array.Copy(hash, 0, vrf_output, 0, (int)Gen_constants.VRFOUTPUTLEN);
             return 0;
         }
 
         public static int generalized_veddsa_25519_sign(
             ISha512 sha512provider,
-            Span<byte> signature_out,
-            ReadOnlySpan<byte> eddsa_25519_pubkey_bytes,
-            ReadOnlySpan<byte> eddsa_25519_privkey_scalar,
-            ReadOnlySpan<byte> msg,
+            byte[] signature_out,
+            byte[] eddsa_25519_pubkey_bytes,
+            byte[] eddsa_25519_privkey_scalar,
+            byte[] msg,
             uint msg_len,
-            ReadOnlySpan<byte> random,
-            ReadOnlySpan<byte> customization_label,
+            byte[] random,
+            byte[] customization_label,
             uint customization_label_len)
         {
-            Span<byte> labelset = new Span<byte>(new byte[Gen_constants.LABELSETMAXLEN]);
+            byte[] labelset = new byte[Gen_constants.LABELSETMAXLEN];
             uint labelset_len = 0;
             Ge_p3 Bv_point = new Ge_p3();
             Ge_p3 Kv_point = new Ge_p3();
             Ge_p3 Rv_point = new Ge_p3();
-            Span<byte> Bv_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
-            Span<byte> Kv_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
-            Span<byte> Rv_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
-            Span<byte> R_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
-            Span<byte> r_scalar = new Span<byte>(new byte[Gen_constants.SCALARLEN]);
-            Span<byte> h_scalar = new Span<byte>(new byte[Gen_constants.SCALARLEN]);
-            Span<byte> s_scalar = new Span<byte>(new byte[Gen_constants.SCALARLEN]);
-            Span<byte> extra = new Span<byte>(new byte[3 * Gen_constants.POINTLEN]);
-            Span<byte> M_buf = null;
+            byte[] Bv_bytes = new byte[Gen_constants.POINTLEN];
+            byte[] Kv_bytes = new byte[Gen_constants.POINTLEN];
+            byte[] Rv_bytes = new byte[Gen_constants.POINTLEN];
+            byte[] R_bytes = new byte[Gen_constants.POINTLEN];
+            byte[] r_scalar = new byte[Gen_constants.SCALARLEN];
+            byte[] h_scalar = new byte[Gen_constants.SCALARLEN];
+            byte[] s_scalar = new byte[Gen_constants.SCALARLEN];
+            byte[] extra = new byte[3 * Gen_constants.POINTLEN];
+            byte[] M_buf = null;
             string protocol_name = "VEdDSA_25519_SHA512_Elligator2";
 
             Arrays.Fill(signature_out, 0, Gen_constants.VRFSIGNATURELEN);
 
-            M_buf = new Span<byte>(new byte[msg_len + Gen_constants.MSTART]);
-            msg.Slice(0, (int)msg_len).CopyTo(M_buf.Slice((int)Gen_constants.MSTART));
+            M_buf = new byte[msg_len + Gen_constants.MSTART];
+            Array.Copy(msg, 0, M_buf, (int)Gen_constants.MSTART, (int)msg_len);
 
             // labelset = new_labelset(protocol_name, customization_label)
             if (Gen_labelset.labelset_new(labelset, ref labelset_len, Gen_constants.LABELSETMAXLEN,
@@ -124,8 +125,8 @@ namespace org.whispersystems.curve25519.csharp
             // labelset2 = add_label(labels, "2")
             // R, r = commit(labelset2, (Bv || Kv), (K,k), Z, M)
             labelset[(int)labelset_len - 1] = Encoding.UTF8.GetBytes("2")[0];
-            Bv_bytes.CopyTo(extra);
-            Kv_bytes.CopyTo(extra.Slice((int)Gen_constants.POINTLEN));
+            Array.Copy(Bv_bytes, 0, extra, 0, (int)Gen_constants.POINTLEN);
+            Array.Copy(Kv_bytes, 0, extra, (int)Gen_constants.POINTLEN, (int)Gen_constants.POINTLEN);
             if (Gen_eddsa.generalized_commit(sha512provider, R_bytes, r_scalar,
                 labelset, labelset_len,
                 extra, 2 * Gen_constants.POINTLEN,
@@ -145,7 +146,7 @@ namespace org.whispersystems.curve25519.csharp
             // labelset3 = add_label(labels, "3")
             // h = challenge(labelset3, (Bv || Kv || Rv), R, K, M)
             labelset[(int)labelset_len - 1] = Encoding.UTF8.GetBytes("3")[0];
-            Rv_bytes.CopyTo(extra.Slice(2 * (int)Gen_constants.POINTLEN));
+            Array.Copy(Rv_bytes, 0, extra, 2 * (int)Gen_constants.POINTLEN, (int)Gen_constants.POINTLEN);
             if (Gen_eddsa.generalized_challenge(sha512provider, h_scalar,
                 labelset, labelset_len,
                 extra, 3 * Gen_constants.POINTLEN,
@@ -168,9 +169,9 @@ namespace org.whispersystems.curve25519.csharp
             }
 
             // return (Kv || h || s)
-            Kv_bytes.CopyTo(signature_out);
-            h_scalar.CopyTo(signature_out.Slice((int)Gen_constants.POINTLEN));
-            s_scalar.CopyTo(signature_out.Slice((int)(Gen_constants.POINTLEN + Gen_constants.SCALARLEN)));
+            Array.Copy(Kv_bytes, 0, signature_out, 0, (int)Gen_constants.POINTLEN);
+            Array.Copy(h_scalar, 0, signature_out, (int)Gen_constants.POINTLEN, (int)Gen_constants.SCALARLEN);
+            Array.Copy(s_scalar, 0, signature_out, (int)(Gen_constants.POINTLEN + Gen_constants.SCALARLEN), (int)Gen_constants.SCALARLEN);
 
             Zeroize.zeroize(r_scalar, (int)Gen_constants.SCALARLEN);
             //zeroize_stack()
@@ -180,38 +181,40 @@ namespace org.whispersystems.curve25519.csharp
 
         public static int generalized_veddsa_25519_verify(
             ISha512 sha512provider,
-            Span<byte> vrf_out,
-            ReadOnlySpan<byte> signature,
-            ReadOnlySpan<byte> eddsa_25519_pubkey_bytes,
-            ReadOnlySpan<byte> msg,
+            byte[] vrf_out,
+            byte[] signature,
+            byte[] eddsa_25519_pubkey_bytes,
+            byte[] msg,
             uint msg_len,
-            ReadOnlySpan<byte> customization_label,
+            byte[] customization_label,
             uint customization_label_len)
         {
-            Span<byte> labelset = new Span<byte>(new byte[Gen_constants.LABELSETMAXLEN]);
+            byte[] labelset = new byte[Gen_constants.LABELSETMAXLEN];
             uint labelset_len = 0;
-            ReadOnlySpan<byte> Kv_bytes = null;
-            ReadOnlySpan<byte> h_scalar = null;
-            ReadOnlySpan<byte> s_scalar = null;
+            byte[] Kv_bytes = null;
+            byte[] h_scalar = null;
+            byte[] s_scalar = null;
             Ge_p3 Bv_point = new Ge_p3();
             Ge_p3 K_point = new Ge_p3();
             Ge_p3 Kv_point = new Ge_p3();
             Ge_p3 cK_point = new Ge_p3();
             Ge_p3 cKv_point = new Ge_p3();
-            Span<byte> Bv_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
-            Span<byte> R_calc_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
-            Span<byte> Rv_calc_bytes = new Span<byte>(new byte[Gen_constants.POINTLEN]);
-            Span<byte> h_calc_scalar = new Span<byte>(new byte[Gen_constants.SCALARLEN]);
-            Span<byte> extra = new Span<byte>(new byte[3 * Gen_constants.POINTLEN]);
-            Span<byte> M_buf = null;
+            byte[] Bv_bytes = new byte[Gen_constants.POINTLEN];
+            byte[] R_calc_bytes = new byte[Gen_constants.POINTLEN];
+            byte[] Rv_calc_bytes = new byte[Gen_constants.POINTLEN];
+            byte[] h_calc_scalar = new byte[Gen_constants.SCALARLEN];
+            byte[] extra = new byte[3 * Gen_constants.POINTLEN];
+            byte[] M_buf = null;
             string protocol_name = "VEdDSA_25519_SHA512_Elligator2";
 
-            M_buf = new Span<byte>(new byte[msg_len + Gen_constants.MSTART]);
-            msg.Slice(0, (int)msg_len).CopyTo(M_buf.Slice((int)Gen_constants.MSTART));
+            M_buf = new byte[msg_len + Gen_constants.MSTART];
+            Array.Copy(msg, 0, M_buf, (int)Gen_constants.MSTART, (int)msg_len);
 
             Kv_bytes = signature;
-            h_scalar = signature.Slice((int)Gen_constants.POINTLEN);
-            s_scalar = signature.Slice((int)(Gen_constants.POINTLEN + Gen_constants.SCALARLEN));
+            h_scalar = new byte[signature.Length - Gen_constants.POINTLEN];
+            Array.Copy(signature, (int)Gen_constants.POINTLEN, h_scalar, 0, signature.Length - (int)Gen_constants.POINTLEN);
+            s_scalar = new byte[signature.Length - Gen_constants.POINTLEN - Gen_constants.SCALARLEN];
+            Array.Copy(signature, (int)(Gen_constants.POINTLEN + Gen_constants.SCALARLEN), s_scalar, 0, (int)(signature.Length - Gen_constants.POINTLEN - Gen_constants.SCALARLEN));
 
             if (!Point_isreduced.point_isreduced(eddsa_25519_pubkey_bytes))
                 return -1;
@@ -254,9 +257,9 @@ namespace org.whispersystems.curve25519.csharp
             // labelset3 = add_label(labels, "3")
             // h = challenge(labelset3, (Bv || Kv || Rv), R, K, M)
             labelset[(int)labelset_len - 1] = Encoding.UTF8.GetBytes("3")[0];
-            Bv_bytes.CopyTo(extra);
-            Kv_bytes.Slice(0, (int)Gen_constants.POINTLEN).CopyTo(extra.Slice((int)Gen_constants.POINTLEN));
-            Rv_calc_bytes.CopyTo(extra.Slice(2 * (int)Gen_constants.POINTLEN));
+            Array.Copy(Bv_bytes, 0, extra, 0, (int)Gen_constants.POINTLEN);
+            Array.Copy(Kv_bytes, 0, extra, (int)Gen_constants.POINTLEN, (int)Gen_constants.POINTLEN);
+            Array.Copy(Rv_calc_bytes, 0, extra, 2 * (int)Gen_constants.POINTLEN, (int)Gen_constants.POINTLEN);
             if (Gen_eddsa.generalized_challenge(sha512provider, h_calc_scalar,
                 labelset, labelset_len,
                 extra, 3 * Gen_constants.POINTLEN,

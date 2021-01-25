@@ -15,18 +15,16 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
-
 namespace org.whispersystems.curve25519.csharp
 {
     public class Crypto_verify_32
     {
-        public static int crypto_verify_32(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y)
+        public static int crypto_verify_32(byte[] x, byte[] y)
         {
             return crypto_verify_32(x, y, 32);
         }
 
-        public static int crypto_verify_32(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, int length)
+        public static int crypto_verify_32(byte[] x, byte[] y, int length)
         {
             int differentbits = 0;
             for (int count = 0; count < length; count++)
@@ -36,7 +34,7 @@ namespace org.whispersystems.curve25519.csharp
             return (1 & ((differentbits - 1) >> 8)) - 1;
         }
 
-        public static int crypto_verify_32(ReadOnlySpan<int> x, ReadOnlySpan<int> y)
+        public static int crypto_verify_32(int[] x, int[] y)
         {
             int differentbits = 0;
             for (int count = 0; count < 10; count++)
