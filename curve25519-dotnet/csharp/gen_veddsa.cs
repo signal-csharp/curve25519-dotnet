@@ -38,7 +38,7 @@ namespace org.whispersystems.curve25519.csharp
         {
             byte[] buf = new byte[Gen_constants.BUFLEN];
             int? bufptr = 0;
-            int bufend = (int)Gen_constants.BUFLEN;
+            //int bufend = (int)Gen_constants.BUFLEN;
             byte[] cKv_bytes = new byte[Gen_constants.POINTLEN];
             byte[] hash = new byte[Gen_constants.HASHLEN];
 
