@@ -1,9 +1,4 @@
 ﻿using org.whispersystems.curve25519.csharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace curve25519_dotnet.csharp
 {

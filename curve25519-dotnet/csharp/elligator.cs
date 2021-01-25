@@ -24,6 +24,7 @@ namespace org.whispersystems.curve25519.csharp
         public static int legendre_is_nonsquare(int[] iIn)
         {
             int[] temp = new int[10];
+            byte[] bytes = new byte[32];
             Fe_pow22523.fe_pow22523(temp, iIn); /* temp = in^((q-5)/8) */
             Fe_sq.fe_sq(temp, temp);            /*        in^((q-5)/4) */
             Fe_sq.fe_sq(temp, temp);            /*        in^((q-5)/2) */
@@ -36,7 +37,6 @@ namespace org.whispersystems.curve25519.csharp
              * 0 = input is zero
              * -1 = nonsquare
              */
-            byte[] bytes = new byte[32];
             Fe_tobytes.fe_tobytes(bytes, temp);
             return 1 & bytes[31];
         }

@@ -140,7 +140,5 @@ namespace org.whispersystems.curve25519.csharp
             s[30] = (byte)(h9 >> 10);
             s[31] = (byte)(h9 >> 18);
         }
-
-
     }
 }

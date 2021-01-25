@@ -15,12 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using curve25519.bc_crypto.digests;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Org.BouncyCastle.Crypto.Digests;
 
 namespace org.whispersystems.curve25519
 {
@@ -28,6 +23,11 @@ namespace org.whispersystems.curve25519
     {
         public void calculateDigest(byte[] digestOut, byte[] inData, long length)
         {
+            // Not converting this to use Span<byte> because we would need to do 2 array copies
+            // byte[] digestOutArray = digestOut.ToArray() (copy 1)
+            // d.DoFinal(digestOutArray, 0); (yes this is a copy into digestOutArray but that happens in either implementation)
+            // digestOutArray.CopyTo(digestOut); (copy 2)
+
             Sha512Digest d = new Sha512Digest();
             d.BlockUpdate(inData, 0, (int)length);
             d.DoFinal(digestOut, 0);

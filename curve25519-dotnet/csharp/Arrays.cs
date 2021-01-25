@@ -26,9 +26,14 @@ namespace org.whispersystems.curve25519.csharp
         /// </summary>
         /// <param name="a">the array to be filled</param>
         /// <param name="val">the value to be stored in all elements of the array</param>
-        public static void fill(byte[] a, byte val)
+        public static void Fill(byte[] a, byte val)
         {
-            for (int i = 0, len = a.Length; i < len; i++)
+            Fill(a, val, (uint)a.Length);
+        }
+
+        public static void Fill(byte[] a, byte val, uint length)
+        {
+            for (int i = 0; i < length; i++)
                 a[i] = val;
         }
 

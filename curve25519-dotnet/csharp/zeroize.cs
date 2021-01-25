@@ -28,5 +28,13 @@ namespace org.whispersystems.curve25519.csharp
                 b[i] = 0;
             }
         }
+
+        public static void zeroize(byte[] b, int start, int len)
+        {
+            for (int i = start; i < len; i++)
+            {
+                b[i] = 0;
+            }
+        }
     }
 }

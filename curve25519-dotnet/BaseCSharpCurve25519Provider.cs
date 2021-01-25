@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using org.whispersystems.curve25519.csharp;
 using System;
+using org.whispersystems.curve25519.csharp;
 
 namespace org.whispersystems.curve25519
 {
@@ -25,7 +25,6 @@ namespace org.whispersystems.curve25519
     /// </summary>
     public abstract class BaseCSharpCurve25519Provider : Curve25519Provider
     {
-
         private ISha512 sha512provider;
         private SecureRandomProvider secureRandomProvider;
 
@@ -108,7 +107,7 @@ namespace org.whispersystems.curve25519
         {
             byte[] signature = new byte[96];
 
-            if (vxeddsa.vxed25510_sign(sha512provider, signature, privateKey, message, message.Length, random) != 0)
+            if (Gen_x.generalized_xveddsa_25519_sign(sha512provider, signature, privateKey, message, (uint)message.Length, random, null, 0) != 0)
             {
                 throw new ArgumentException("Signature failed!");
             }
@@ -119,7 +118,7 @@ namespace org.whispersystems.curve25519
         public override byte[] verifyVrfSignature(byte[] publicKey, byte[] message, byte[] signature)
         {
             byte[] vrf = new byte[32];
-            int result = vxeddsa.vxed25519_verify(sha512provider, vrf, signature, publicKey, message, message.Length);
+            int result = Gen_x.generalized_xveddsa_25519_verify(sha512provider, vrf, signature, publicKey, message, (uint)message.Length, null, 0);
 
             if (result == 0)
             {
