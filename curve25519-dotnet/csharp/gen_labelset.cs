@@ -26,7 +26,7 @@ namespace org.whispersystems.curve25519.csharp
                 return null;
             if (_in == null && in_len != 0)
                 return null;
-            if (bufptr + in_len > buf.Length)
+            if (buf.Length - bufptr < in_len)
                 return null;
 
             if (in_len > 0)
@@ -45,7 +45,7 @@ namespace org.whispersystems.curve25519.csharp
                 return null;
 
             pad_len = (uint)(Gen_constants.BLOCKLEN - ((bufptr - bufstart) % Gen_constants.BLOCKLEN)) % Gen_constants.BLOCKLEN;
-            if (bufptr + pad_len > bufend)
+            if (bufend - bufptr < pad_len)
                 return null;
 
             for (count = 0; count < pad_len; count++)
@@ -63,7 +63,23 @@ namespace org.whispersystems.curve25519.csharp
             byte[] customization_label, byte customization_label_len)
         {
             int? bufptr = 0;
-            if (labelset == null || labelset_maxlen < 3 + protocol_name_len + customization_label_len)
+
+            labelset_len = 0;
+            if (labelset == null)
+                return -1;
+            //if (labelset_len == null)
+            //    return -1;
+            if (labelset_maxlen > Gen_constants.LABELSETMAXLEN)
+                return -1;
+            if (labelset_maxlen < 3 + protocol_name_len + customization_label_len)
+                return -1;
+            if (protocol_name == null && protocol_name_len != 0)
+                return -1;
+            if (customization_label == null && customization_label_len != 0)
+                return -1;
+            if (protocol_name_len > Gen_constants.LABELMAXLEN)
+                return -1;
+            if (customization_label_len > Gen_constants.LABELMAXLEN)
                 return -1;
 
             labelset[bufptr.Value] = 2;
@@ -77,7 +93,7 @@ namespace org.whispersystems.curve25519.csharp
                 bufptr += 1;
             }
             bufptr += buffer_add(labelset, bufptr, customization_label, customization_label_len);
-            if (bufptr != null)
+            if (bufptr != null && bufptr == 3 + protocol_name_len + customization_label_len)
             {
                 labelset_len = (uint)bufptr.Value;
                 return 0;
@@ -88,13 +104,29 @@ namespace org.whispersystems.curve25519.csharp
         public static int labelset_add(byte[] labelset, ref uint labelset_len, uint labelset_maxlen,
             byte[] label, byte label_len)
         {
-            if (labelset_len + label_len > labelset_maxlen)
+            int? bufptr = 0;
+            //if (labelset_len == null)
+            //    return -1;
+            if (labelset_len > Gen_constants.LABELSETMAXLEN || labelset_maxlen > Gen_constants.LABELSETMAXLEN)
                 return -1;
-            if (labelset_len < 1 || labelset_maxlen < 1 || label_len < 1)
+            if (labelset_len >= labelset_maxlen || labelset_len + label_len + 1 > labelset_maxlen)
                 return -1;
+            if (labelset_len < 3 || labelset_maxlen < 4)
+                return -1;
+            if (label_len > Gen_constants.LABELMAXLEN)
+                return -1;
+
             labelset[0] += 1;
             labelset[(int)labelset_len] = label_len;
-            Array.Copy(label, 0, labelset, (int)labelset_len + 1, label_len);
+            bufptr = (int)labelset_len + 1;
+            bufptr += buffer_add(labelset, bufptr, label, label_len);
+            if (bufptr == null)
+                return -1;
+            if (bufptr >= labelset_maxlen)
+                return -1;
+            if (bufptr != labelset_len + 1 + label_len)
+                return -1;
+
             labelset_len += 1u + label_len;
             return 0;
         }
@@ -104,17 +136,21 @@ namespace org.whispersystems.curve25519.csharp
             byte num_labels = 0;
             byte count = 0;
             uint offset = 0;
+            byte label_len = 0;
 
             if (labelset == null)
                 return -1;
-            if (labelset_len < 3)
+            if (labelset_len < 3 || labelset_len > Gen_constants.LABELSETMAXLEN)
                 return -1;
 
             num_labels = labelset[0];
             offset = 1;
             for (count = 0; count < num_labels; count++)
             {
-                offset += 1u + labelset[(int)offset];
+                label_len = labelset[offset];
+                if (label_len > Gen_constants.LABELMAXLEN)
+                    return -1;
+                offset += 1u + label_len;
                 if (offset > labelset_len)
                     return -1;
             }

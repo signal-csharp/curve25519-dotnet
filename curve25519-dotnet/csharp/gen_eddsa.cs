@@ -41,13 +41,19 @@ namespace org.whispersystems.curve25519.csharp
                 Zeroize.zeroize(M_buf, (int)M_start);
                 return -1;
             }
-            if (labelset == null && labelset_len != 0)
+            if (extra == null && extra_len != 0)
             {
                 Zeroize.zeroize(hash, (int)Gen_constants.HASHLEN);
                 Zeroize.zeroize(M_buf, (int)M_start);
                 return -1;
             }
-            if (extra == null && extra_len != 0)
+            if (extra != null && extra_len == 0)
+            {
+                Zeroize.zeroize(hash, (int)Gen_constants.HASHLEN);
+                Zeroize.zeroize(M_buf, (int)M_start);
+                return -1;
+            }
+            if (extra != null && Gen_labelset.labelset_is_empty(labelset, labelset_len))
             {
                 Zeroize.zeroize(hash, (int)Gen_constants.HASHLEN);
                 Zeroize.zeroize(M_buf, (int)M_start);
@@ -123,13 +129,19 @@ namespace org.whispersystems.curve25519.csharp
             int bufend = 0;
             uint prefix_len = 0;
 
+            if (h_scalar == null)
+                return -1;
+            Arrays.Fill(h_scalar, 0, Gen_constants.SCALARLEN);
+
             if (Gen_labelset.labelset_validate(labelset, labelset_len) != 0)
                 return -1;
-            if (h_scalar == null || R_bytes == null || K_bytes == null || M_buf == null)
-                return -1;
-            if (labelset == null && labelset_len != 0)
+            if (R_bytes == null || K_bytes == null || M_buf == null)
                 return -1;
             if (extra == null && extra_len != 0)
+                return -1;
+            if (extra != null && extra_len == 0)
+                return -1;
+            if (extra != null && Gen_labelset.labelset_is_empty(labelset, labelset_len))
                 return -1;
             //if (Gen_constants.HASHLEN != 64)
             //    return -1;
@@ -137,6 +149,8 @@ namespace org.whispersystems.curve25519.csharp
             if (Gen_labelset.labelset_is_empty(labelset, labelset_len))
             {
                 if (2 * Gen_constants.POINTLEN > M_start)
+                    return -1;
+                if (extra != null || extra_len != 0)
                     return -1;
                 Array.Copy(R_bytes, 0, M_buf, (int)M_start - (2 * (int)Gen_constants.POINTLEN), (int)Gen_constants.POINTLEN);
                 Array.Copy(K_bytes, 0, M_buf, (int)M_start - (1 * (int)Gen_constants.POINTLEN), (int)Gen_constants.POINTLEN);
@@ -180,6 +194,7 @@ namespace org.whispersystems.curve25519.csharp
             return 0;
         }
 
+        /* R = s*B - h*K */
         public static int generalized_solve_commitment(byte[] R_bytes_out, Ge_p3 K_point_out,
             Ge_p3 B_point, byte[] s_scalar,
             byte[] K_bytes, byte[] h_scalar)
@@ -189,9 +204,7 @@ namespace org.whispersystems.curve25519.csharp
 
             Ge_p3 sB = new Ge_p3();
             Ge_p3 hK = new Ge_p3();
-            Ge_cached hK_cached = new Ge_cached();
             Ge_p3 R_calc_point_p3 = new Ge_p3();
-            Ge_p1p1 Rp1p1 = new Ge_p1p1();
 
             if (Ge_frombytes.ge_frombytes_negate_vartime(Kneg_point, K_bytes) != 0)
                 return -1;
@@ -210,9 +223,7 @@ namespace org.whispersystems.curve25519.csharp
                 Ge_scalarmult.ge_scalarmult(hK, h_scalar, Kneg_point);
 
                 // R = sB - hK
-                Ge_p3_to_cached.ge_p3_to_cached(hK_cached, hK);
-                Ge_add.ge_add(Rp1p1, sB, hK_cached);
-                Ge_p1p1_to_p3.ge_p1p1_to_p3(R_calc_point_p3, Rp1p1);
+                Ge_p3_add.ge_p3_add(R_calc_point_p3, sB, hK);
                 Ge_p3_tobytes.ge_p3_tobytes(R_bytes_out, R_calc_point_p3);
             }
 
@@ -243,14 +254,27 @@ namespace org.whispersystems.curve25519.csharp
             byte[] s_scalar = new byte[Gen_constants.SCALARLEN];
             byte[] M_buf = null;
 
+            if (signature_out == null)
+                return -1;
             // memset(signature_out, 0, SIGNATURELEN);
+
+            if (eddsa_25519_pubkey_bytes == null)
+                return -1;
+            if (eddsa_25519_privkey_scalar == null)
+                return -1;
+            if (msg == null)
+                return -1;
+            if (customization_label == null && customization_label_len != 0)
+                return -1;
+            if (customization_label_len > Gen_constants.LABELMAXLEN)
+                return -1;
+            if (msg_len > Gen_constants.MSGMAXLEN)
+                return -1;
 
             M_buf = new byte[msg_len + Gen_constants.MSTART];
             // we slice to msg_len because the msg buffer may be longer than msg_len
             Array.Copy(msg, 0, M_buf, (int)Gen_constants.MSTART, (int)msg_len);
 
-            // TODO: In curve25519-java labelset_new defines customization_label_len as a const unsigned char but in
-            // this method it's defined as a const unsigned long. Is this a bug in curve25519-java?
             if (Gen_labelset.labelset_new(labelset, ref labelset_len, Gen_constants.LABELSETMAXLEN, null, 0,
                 customization_label, (byte)customization_label_len) != 0)
             {
@@ -312,6 +336,19 @@ namespace org.whispersystems.curve25519.csharp
             byte[] h_scalar = new byte[Gen_constants.SCALARLEN];
             byte[] M_buf = null;
             byte[] R_calc_bytes = new byte[Gen_constants.POINTLEN];
+
+            if (signature == null)
+                return -1;
+            if (eddsa_25519_pubkey_bytes == null)
+                return -1;
+            if (msg == null)
+                return -1;
+            if (customization_label == null && customization_label_len != 0)
+                return -1;
+            if (customization_label_len > Gen_constants.LABELMAXLEN)
+                return -1;
+            if (msg_len > Gen_constants.MSGMAXLEN)
+                return -1;
 
             M_buf = new byte[msg_len + Gen_constants.MSTART];
             // we slice to msg_len because the msg buffer may be longer than msg_len

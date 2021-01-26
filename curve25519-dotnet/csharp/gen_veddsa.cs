@@ -10,6 +10,7 @@ namespace org.whispersystems.curve25519.csharp
             byte[] K_bytes,
             byte[] M_buf, uint M_start, uint M_len)
         {
+            int? bufptr = 0;
             uint prefix_len = 0;
 
             if (Gen_labelset.labelset_validate(labelset, labelset_len) != 0)
@@ -21,9 +22,13 @@ namespace org.whispersystems.curve25519.csharp
             if (prefix_len > M_start)
                 return -1;
 
-            Array.Copy(Gen_labelset.B_bytes, 0, M_buf, (int)(M_start - prefix_len), (int)Gen_constants.POINTLEN);
-            Array.Copy(labelset, 0, M_buf, (int)(M_start - prefix_len + Gen_constants.POINTLEN), (int)labelset_len);
-            Array.Copy(K_bytes, 0, M_buf, (int)(M_start - prefix_len + Gen_constants.POINTLEN + labelset_len), (int)Gen_constants.POINTLEN);
+            bufptr = (int)(M_start - prefix_len);
+            bufptr += Gen_labelset.buffer_add(M_buf, bufptr, Gen_labelset.B_bytes, Gen_constants.POINTLEN);
+            bufptr += Gen_labelset.buffer_add(M_buf, bufptr, labelset, labelset_len);
+            bufptr += Gen_labelset.buffer_add(M_buf, bufptr, K_bytes, Gen_constants.POINTLEN);
+            if (bufptr == null || bufptr != M_start)
+                return -1;
+
             byte[] _in = new byte[prefix_len + M_len];
             Array.Copy(M_buf, (int)(M_start - prefix_len), _in, 0, (int)(prefix_len + M_len));
             Elligator.hash_to_point(sha512provider, Bv_point, _in, (int)(prefix_len + M_len));
@@ -42,12 +47,18 @@ namespace org.whispersystems.curve25519.csharp
             byte[] cKv_bytes = new byte[Gen_constants.POINTLEN];
             byte[] hash = new byte[Gen_constants.HASHLEN];
 
+            if (vrf_output == null)
+                return -1;
+            Arrays.Fill(vrf_output, 0, Gen_constants.VRFOUTPUTLEN);
+
             if (labelset_len + 2 * Gen_constants.POINTLEN > Gen_constants.BUFLEN)
                 return -1;
             if (Gen_labelset.labelset_validate(labelset, labelset_len) != 0)
                 return -1;
-            if (vrf_output == null || cKv_point == null)
+            if (cKv_point == null)
                 return -1;
+            //if (Gen_constants.VRFOUTPUTLEN > Gen_constants.HASHLEN)
+            //    return -1;
 
             Ge_p3_tobytes.ge_p3_tobytes(cKv_bytes, cKv_point);
 
@@ -90,7 +101,57 @@ namespace org.whispersystems.curve25519.csharp
             byte[] M_buf = null;
             string protocol_name = "VEdDSA_25519_SHA512_Elligator2";
 
+            if (signature_out == null)
+            {
+                Zeroize.zeroize(r_scalar, (int)Gen_constants.SCALARLEN);
+                //zeroize_stack()
+                //free(M_buf);
+                return -1;
+            }
             Arrays.Fill(signature_out, 0, Gen_constants.VRFSIGNATURELEN);
+
+            if (eddsa_25519_pubkey_bytes == null)
+            {
+                Zeroize.zeroize(r_scalar, (int)Gen_constants.SCALARLEN);
+                //zeroize_stack()
+                //free(M_buf);
+                return -1;
+            }
+            if (eddsa_25519_privkey_scalar == null)
+            {
+                Zeroize.zeroize(r_scalar, (int)Gen_constants.SCALARLEN);
+                //zeroize_stack()
+                //free(M_buf);
+                return -1;
+            }
+            if (msg == null)
+            {
+                Zeroize.zeroize(r_scalar, (int)Gen_constants.SCALARLEN);
+                //zeroize_stack()
+                //free(M_buf);
+                return -1;
+            }
+            if (customization_label == null && customization_label_len != 0)
+            {
+                Zeroize.zeroize(r_scalar, (int)Gen_constants.SCALARLEN);
+                //zeroize_stack()
+                //free(M_buf);
+                return -1;
+            }
+            if (customization_label_len > Gen_constants.LABELMAXLEN)
+            {
+                Zeroize.zeroize(r_scalar, (int)Gen_constants.SCALARLEN);
+                //zeroize_stack()
+                //free(M_buf);
+                return -1;
+            }
+            if (msg_len > Gen_constants.MSGMAXLEN)
+            {
+                Zeroize.zeroize(r_scalar, (int)Gen_constants.SCALARLEN);
+                //zeroize_stack()
+                //free(M_buf);
+                return -1;
+            }
 
             M_buf = new byte[msg_len + Gen_constants.MSTART];
             Array.Copy(msg, 0, M_buf, (int)Gen_constants.MSTART, (int)msg_len);
@@ -206,6 +267,23 @@ namespace org.whispersystems.curve25519.csharp
             byte[] extra = new byte[3 * Gen_constants.POINTLEN];
             byte[] M_buf = null;
             string protocol_name = "VEdDSA_25519_SHA512_Elligator2";
+
+            if (vrf_out == null)
+                return -1;
+            Arrays.Fill(vrf_out, 0, Gen_constants.VRFOUTPUTLEN);
+
+            if (signature == null)
+                return -1;
+            if (eddsa_25519_pubkey_bytes == null)
+                return -1;
+            if (msg == null)
+                return -1;
+            if (customization_label == null && customization_label_len != 0)
+                return -1;
+            if (customization_label_len > Gen_constants.LABELMAXLEN)
+                return -1;
+            if (msg_len > Gen_constants.MSGMAXLEN)
+                return -1;
 
             M_buf = new byte[msg_len + Gen_constants.MSTART];
             Array.Copy(msg, 0, M_buf, (int)Gen_constants.MSTART, (int)msg_len);

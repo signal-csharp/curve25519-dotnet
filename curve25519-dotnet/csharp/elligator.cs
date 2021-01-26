@@ -103,40 +103,5 @@ namespace org.whispersystems.curve25519.csharp
             Ge_montx_to_p3.ge_montx_to_p3(p3, u, sign_bit);
             Ge_scalarmult_cofactor.ge_scalarmult_cofactor(p, p3);
         }
-
-        public static void calculate_Bv(ISha512 sha512provider,
-            Ge_p3 Bv,
-            byte[] buf,
-            byte[] A,
-            byte[] msg, int msg_len)
-        {
-            int count;
-
-            /* Calculate SHA512(label(2) || A || msg) */
-            buf[0] = 0xFD;
-            for (count = 1; count < 32; count++)
-            {
-                buf[count] = 0xFF;
-            }
-            Array.Copy(A, 0, buf, 32, 32);
-            Array.Copy(msg, 0, buf, 64, msg_len);
-
-            hash_to_point(sha512provider, Bv, buf, 64 + msg_len);
-        }
-
-        public static void calculate_Bv_and_V(ISha512 sha512provider,
-            Ge_p3 Bv,
-            byte[] V,
-            byte[] buf,
-            byte[] a,
-            byte[] A,
-            byte[] msg, int msg_len)
-        {
-            Ge_p3 p3 = new Ge_p3();
-
-            calculate_Bv(sha512provider, Bv, buf, A, msg, msg_len);
-            Ge_scalarmult.ge_scalarmult(p3, a, Bv);
-            Ge_p3_tobytes.ge_p3_tobytes(V, p3);
-        }
     }
 }
